@@ -1,13 +1,10 @@
 # Ruby Zyre
 
 home
-: https://hg.sr.ht/~ged/rbzyre
+: https://gitlab.com/ravngroup/open-source/ruby-zyre
 
 code
-: https://hg.sr.ht/~ged/rbzyre/browse
-
-github
-: https://github.com/ged/rbzyre
+: https://gitlab.com/ravngroup/open-source/ruby-zyre/-/tree/master
 
 docs
 : https://deveiate.org/code/rbzyre
