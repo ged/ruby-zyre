@@ -83,29 +83,33 @@ rzyre_read_event( void *node_ptr )
 
 /*
  * call-seq:
- *    Zyre::Event.new( node )   -> event
+ *    Zyre::Event.from_node( node )   -> event
  *
  * Read the next event from the given Zyre::Node and wrap it in a Zyre::Event.
  *
  */
 static VALUE
-rzyre_event_initialize( VALUE self, VALUE node )
+rzyre_event_s_from_node( VALUE klass, VALUE node )
 {
 	zyre_t *node_ptr = rzyre_get_node( node );
-	zyre_event_t *ptr;
+	zyre_event_t *event;
 
 	assert( node_ptr );
 
-	TypedData_Get_Struct( self, zyre_event_t, &rzyre_event_t, ptr );
-	if ( !ptr ) {
-		RTYPEDDATA_DATA( self ) = ptr =
-			rb_thread_call_without_gvl2( rzyre_read_event, (void *)node_ptr, RUBY_UBF_IO, 0 );
+	event = rb_thread_call_without_gvl2( rzyre_read_event, (void *)node_ptr, RUBY_UBF_IO, 0 );
 
-		// Interrupt has arrived instead of an event; raise an Interrupt.
-		if ( !ptr ) rb_interrupt();
+	if ( event ) {
+		const char *event_type = zyre_event_type( event );
+		VALUE event_type_s = rb_utf8_str_new_cstr( event_type );
+		VALUE event_class = rb_funcall( klass, rb_intern("type_by_name"), 1, event_type_s );
+		VALUE event_instance = rb_class_new_instance( 0, NULL, event_class );
+
+		RTYPEDDATA_DATA( event_instance ) = event;
+
+		return event_instance;
+	} else {
+		return Qnil;
 	}
-
-	return self;
 }
 
 
@@ -147,7 +151,7 @@ rzyre_event_peer_uuid( VALUE self ) {
 /*
  * call-seq:
  *    event.peer_name
- * 
+ *
  * Return the sending peer's public name as a string
  */
 static VALUE
@@ -162,7 +166,7 @@ rzyre_event_peer_name( VALUE self ) {
 /*
  * call-seq:
  *    event.peer_addr
- * 
+ *
  * Return the sending peer's ipaddress as a string
  */
 static VALUE
@@ -182,7 +186,7 @@ rzyre_event_peer_addr( VALUE self ) {
 /*
  * call-seq:
  *    event.event_headers
- * 
+ *
  * Returns the event headers, or NULL if there are none
  */
 static VALUE
@@ -208,7 +212,7 @@ rzyre_event_headers( VALUE self ) {
 /*
  * call-seq:
  *    event.event_header( name )
- * 
+ *
  * Returns value of the header +name+ from the message headers
  * obtained by ENTER. Return nil if no value was found.
  */
@@ -229,7 +233,7 @@ rzyre_event_header( VALUE self, VALUE name ) {
 /*
  * call-seq:
  *    event.event_group
- * 
+ *
  * Returns the group name that a SHOUT event was sent to
  */
 static VALUE
@@ -248,7 +252,7 @@ rzyre_event_group( VALUE self ) {
 /*
  * call-seq:
  *    event.event_msg
- * 
+ *
  * Returns the incoming message payload.
  */
 static VALUE
@@ -275,7 +279,7 @@ rzyre_event_msg( VALUE self ) {
 /*
  * call-seq:
  *    event.print
- * 
+ *
  * Print event to zsys log
  */
 static VALUE
@@ -311,7 +315,7 @@ rzyre_init_event( void ) {
 
 	rb_define_alloc_func( rzyre_cZyreEvent, rzyre_event_alloc );
 
-	rb_define_protected_method( rzyre_cZyreEvent, "initialize", rzyre_event_initialize, 1 );
+	rb_define_singleton_method( rzyre_cZyreEvent, "from_node", rzyre_event_s_from_node, 1 );
 
 	rb_define_method( rzyre_cZyreEvent, "type", rzyre_event_type, 0 );
 	rb_define_method( rzyre_cZyreEvent, "peer_uuid", rzyre_event_peer_uuid, 0 );

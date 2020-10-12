@@ -9,12 +9,12 @@ require 'zyre'
 RSpec.describe( Zyre::Node ) do
 
 	TEST_WHISPER = <<~END_WHISPER
-	I hear you whispering there, O stars of heaven;	 
+	I hear you whispering there, O stars of heaven;
 	O suns! O grass of graves! O perpetual transfers and promotions!
 	END_WHISPER
 
 	TEST_SHOUT = <<~END_SHOUT
-	I too am not a bit tamed—I too am untranslatable;	 
+	I too am not a bit tamed—I too am untranslatable;
 	I sound my barbaric yawp over the roofs of the world.
 	END_SHOUT
 
@@ -164,19 +164,19 @@ RSpec.describe( Zyre::Node ) do
 		node1.shout( 'ROOFTOP', TEST_SHOUT )
 
 		ev = node2.recv
-		expect( ev.type ).to eq( :ENTER )
+		expect( ev ).to be_a( Zyre::Event::Enter )
 
 		ev = node2.recv
-		expect( ev.type ).to eq( :JOIN )
+		expect( ev ).to be_a( Zyre::Event::Join )
 
 		ev = node2.recv
-		expect( ev.type ).to eq( :SHOUT )
+		expect( ev ).to be_a( Zyre::Event::Shout )
 		expect( ev.msg.encoding ).to eq( Encoding::UTF_8 )
 		expect( ev.msg ).to eq( TEST_SHOUT )
 	end
 
 
-	xit "knows who its peers for a certain group are" do
+	it "knows who its peers for a certain group are" do
 		node1 = started_node()
 		node1.join( 'CHANNEL1' )
 		node1.join( 'CHANNEL2' )

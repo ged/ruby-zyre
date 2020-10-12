@@ -199,7 +199,7 @@ rzyre_poller_wait_without_gvl( void *wait_call )
  * priority is defined by their order in the poll list. If the timeout expired,
  * returns nil. If poll call is interrupted (SIGINT) or the ZMQ context was
  * destroyed, an Interrupt is raised.
- *    
+ *
  */
 static VALUE
 rzyre_poller_wait( int argc, VALUE *argv, VALUE self )

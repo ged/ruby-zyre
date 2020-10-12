@@ -512,9 +512,7 @@ rzyre_node_leave( VALUE self, VALUE group )
 static VALUE
 rzyre_node_recv( VALUE self )
 {
-	VALUE args[1] = { self };
-
-	return rb_class_new_instance( 1, args, rzyre_cZyreEvent );
+	return rb_funcall( rzyre_cZyreEvent, rb_intern("from_node"), 1, self );
 }
 
 
