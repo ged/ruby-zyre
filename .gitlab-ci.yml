@@ -1,16 +1,16 @@
 default:
   image: ruby:2.7
   before_script:
-    - echo "deb http://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-stable/Debian_10/ ./" >> /etc/apt/sources.list
-    - wget https://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-stable/Debian_10/Release.key -O- | apt-key add
-    - apt-get update
-    - apt-get install -y libczmq-dev libzyre-dev
     - ruby -v
     - which ruby
     - gem install -Ng
 
 rspec:
   script:
+    - echo "deb http://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-stable/Debian_10/ ./" >> /etc/apt/sources.list
+    - wget https://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-stable/Debian_10/Release.key -O- | apt-key add
+    - apt-get update
+    - apt-get install -y libczmq-dev libzyre-dev
     - rake clean spec
 
 rubocop:

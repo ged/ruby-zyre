@@ -15,10 +15,10 @@ begin
 	current_fdmax, max_fdmax = Process.getrlimit( :NOFILE )
 	if max_fdmax < 4096
 		warn <<~END_WARNING
-		
+		>>>
 		>>> Couldn't set file-descriptor ulimit to 4096. Later specs might fail due
 		>>> to lack of file descriptors.
-		
+		>>>
 		END_WARNING
 	else
 		Process.setrlimit( :NOFILE, 4096 ) if current_fdmax < 4096
