@@ -1,0 +1,8 @@
+docs/
+tmp/
+*.bundle
+*.lock
+spec/.status
+coverage/
+\.xml$
+

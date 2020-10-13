@@ -5,14 +5,27 @@ default:
     - which ruby
     - gem install -Ng
 
+include:
+  - template: Security/License-Scanning.gitlab-ci.yml
+
 rspec:
   script:
     - echo "deb http://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-stable/Debian_10/ ./" >> /etc/apt/sources.list
     - wget https://download.opensuse.org/repositories/network:/messaging:/zeromq:/git-stable/Debian_10/Release.key -O- | apt-key add
     - apt-get update
     - apt-get install -y libczmq-dev libzyre-dev
-    - rake clean spec
+    - rake clean compile
+    - rspec --format RspecJunitFormatter --out rspec.xml COVERAGE=1
+  artifacts:
+    reports:
+      junit: rspec.xml
+      cobertura: coverage.xml
 
 rubocop:
   script:
     - rubocop
+
+cache:
+  paths:
+    - vendor/ruby
+

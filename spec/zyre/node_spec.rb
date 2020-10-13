@@ -193,5 +193,27 @@ RSpec.describe( Zyre::Node ) do
 			to contain_exactly( node2.uuid, node3.uuid )
 	end
 
+
+	it "has a blocking iterator" do
+		node = described_class.new
+
+		expect( node.each_event ).to be_an( Enumerator )
+	end
+
+
+	it "yields events from its iterator" do
+		node1 = started_node()
+		node1.join( 'CHANNEL1' )
+
+		node2 = started_node()
+		node2.join( 'CHANNEL1' )
+		node2.shout( 'CHANNEL1', "A broadcast message" )
+
+		sleep 0.25
+
+		events = node1.each_event.take( 2 )
+		expect( events ).to all( be_a Zyre::Event )
+	end
+
 end
 

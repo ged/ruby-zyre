@@ -9,5 +9,7 @@ group :development do
 	gem 'rake-deveiate', '~> 0.14', '>= 0.14.1'
 	gem 'rake-compiler', '~> 1.1'
 	gem 'rubocop', '~> 0.91'
+	gem 'rspec_junit_formatter', '~> 0.4'
+	gem 'simplecov-cobertura', '~> 1.4'
 end
 

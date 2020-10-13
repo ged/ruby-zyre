@@ -1,7 +1,13 @@
 # -*- ruby -*-
 # frozen_string_literal: true
 
-require 'simplecov' if ENV['COVERAGE']
+if ENV['COVERAGE']
+	require 'simplecov'
+	if ENV['CI']
+		require 'simplecov-cobertura'
+		SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
+	end
+end
 
 require 'rspec'
 
