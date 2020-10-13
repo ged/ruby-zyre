@@ -4,6 +4,7 @@ default:
     - ruby -v
     - which ruby
     - gem install -Ng
+    - env
 
 include:
   - template: Security/License-Scanning.gitlab-ci.yml
