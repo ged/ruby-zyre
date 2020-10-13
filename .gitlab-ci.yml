@@ -4,7 +4,6 @@ default:
     - ruby -v
     - which ruby
     - gem install -Ng
-    - env
 
 include:
   - template: Security/License-Scanning.gitlab-ci.yml
@@ -20,7 +19,7 @@ rspec:
   artifacts:
     reports:
       junit: rspec.xml
-      cobertura: coverage.xml
+      cobertura: coverage/coverage.xml
 
 rubocop:
   script:
