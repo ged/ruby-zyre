@@ -3,7 +3,7 @@ default:
   before_script:
     - ruby -v
     - which ruby
-    - gem install -Ng -i vendor/ruby
+    - gem install -Ng
 
 # After we upgrade
 # include:
@@ -26,10 +26,4 @@ rubocop:
   script:
     - rubocop
 
-cache:
-  key:
-    files:
-      - gem.deps.rb
-  paths:
-    - vendor/ruby
 
