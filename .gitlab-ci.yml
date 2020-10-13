@@ -3,10 +3,11 @@ default:
   before_script:
     - ruby -v
     - which ruby
-    - gem install -Ng
+    - gem install -Ng -i vendor/ruby
 
-include:
-  - template: Security/License-Scanning.gitlab-ci.yml
+# After we upgrade
+# include:
+#   - template: Security/License-Scanning.gitlab-ci.yml
 
 rspec:
   script:
@@ -26,6 +27,9 @@ rubocop:
     - rubocop
 
 cache:
+  key:
+    files:
+      - gem.deps.rb
   paths:
     - vendor/ruby
 

@@ -4,5 +4,6 @@ tmp/
 *.lock
 spec/.status
 coverage/
+vendor/
 \.xml$
 
