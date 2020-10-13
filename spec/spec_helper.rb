@@ -1,7 +1,7 @@
 # -*- ruby -*-
 # frozen_string_literal: true
 
-if ENV['COVERAGE']
+if ENV['COVERAGE'] || ENV['CI']
 	require 'simplecov'
 	if ENV['CI']
 		require 'simplecov-cobertura'
