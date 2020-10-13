@@ -1,0 +1,42 @@
+---
+AllCops:
+  TargetRubyVersion: 2.4
+  DisabledByDefault: true
+  NewCops: enable
+  Exclude:
+    - gem.deps.rb
+    - "*.gemspec"
+
+Layout/ClassStructure:
+   ExpectedOrder:
+     - module_inclusion
+     - constants
+     - association
+     - macros
+     - public_class_methods
+     - initializer
+     - public_attribute_macros
+     - public_delegate
+     - public_methods
+     - protected_attribute_macros
+     - protected_methods
+     - private_attribute_macros
+     - private_delegate
+     - private_methods
+
+Layout/IndentationStyle:
+  EnforcedStyle: tabs
+Layout/IndentationWidth:
+  Width: 1
+
+Layout/EmptyLines:
+  Enabled: false
+
+Layout/EmptyLineAfterMagicComment:
+  Enabled: true
+Layout/TrailingEmptyLines:
+  Enabled: false
+
+Layout/SpaceInsideReferenceBrackets:
+  Enabled: false
+
