@@ -10,7 +10,10 @@ if ENV['COVERAGE'] || ENV['CI']
 end
 
 require 'rspec'
+require 'rspec/wait'
+require 'zyre'
 
+require 'securerandom'
 require 'loggability/spechelpers'
 
 
@@ -31,6 +34,66 @@ begin
 	end
 end
 
+begin
+	require 'observability'
+	$have_observability = true
+
+	Observability::Sender.configure( type: :testing )
+rescue LoadError => err
+	$have_observability = false
+end
+
+
+module Zyre::SpecHelpers
+
+	### Add hooks when the given +context+ has helpers added to it.
+	def self::included( context )
+
+		context.let( :gossip_hub ) { "inproc://gossip-hub-%s" % [ SecureRandom.hex(16) ] }
+
+		context.before( :each ) do
+			@gossip_endpoint = nil
+			@nodes = []
+		end
+
+		context.after( :each ) do
+			@nodes.each( &:stop )
+		end
+
+		super
+	end
+
+
+	###############
+	module_function
+	###############
+
+	### Return a node that's been configured and started.
+	def started_node( name=nil )
+		node = Zyre::Node.new( name )
+		# node.verbose!
+
+		node.endpoint = 'inproc://node-test-%s' % [ SecureRandom.hex(16) ]
+
+		if @gossip_endpoint
+			# $stderr.puts "Connecting to %p" % [ @gossip_endpoint ]
+			node.gossip_connect( @gossip_endpoint )
+		else
+			@gossip_endpoint = gossip_hub()
+			# $stderr.puts "Binding to %p" % [ @gossip_endpoint ]
+			node.gossip_bind( @gossip_endpoint )
+			sleep 0.25
+		end
+
+		# $stderr.puts "Starting %p" % [ node ]
+		node.start
+		@nodes << node
+
+		return node
+	end
+
+end # module Zyre::SpecHelpers
+
 
 ### Mock with RSpec
 RSpec.configure do |config|
@@ -47,12 +110,16 @@ RSpec.configure do |config|
 	config.disable_monkey_patching!
 	config.example_status_persistence_file_path = "spec/.status"
 	config.filter_run :focus
+	config.filter_run_excluding :observability unless $have_observability
 	config.filter_run_when_matching :focus
 	config.order = :random
 	config.profile_examples = 5
 	config.run_all_when_everything_filtered = true
 	config.shared_context_metadata_behavior = :apply_to_host_groups
 	# config.warnings = true
+
+	config.include( Zyre::SpecHelpers )
+	config.include( Loggability::SpecHelpers )
 end
 
 

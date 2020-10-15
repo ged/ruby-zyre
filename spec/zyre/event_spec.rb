@@ -64,5 +64,40 @@ RSpec.describe( Zyre::Event ) do
 
 	end
 
+
+	describe "matching API" do
+
+		it "matches on a single criterion" do
+			node1 = started_node()
+			node1.join( 'matching-test' )
+
+			node2 = started_node()
+			node2.join( 'matching-test' )
+
+			event = node1.wait_for( :JOIN )
+
+			expect( event ).to match( peer_uuid: node2.uuid )
+			expect( event ).not_to match( peer_uuid: node1.uuid )
+		end
+
+
+		it "matches on multiple criterion" do
+			node1 = started_node( 'badger-2' )
+			node1.join( 'matching-test2' )
+
+			node2 = started_node( 'badger-6' )
+			node2.join( 'matching-test2' )
+
+			event = node1.wait_for( :JOIN )
+
+			expect( event ).to match( peer_uuid: node2.uuid, peer_name: 'badger-6' )
+			expect( event ).not_to match( peer_uuid: node2.uuid, peer_name: 'badger-2' )
+		end
+
+
+		it "matches Regexp patterns as values"
+
+	end
+
 end
 

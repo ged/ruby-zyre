@@ -6,6 +6,8 @@ require 'loggability'
 require 'zyre' unless defined?( Zyre )
 
 
+#--
+# See also: ext/zyre_ext/node.c
 class Zyre::Node
 	extend Loggability
 
@@ -25,6 +27,24 @@ class Zyre::Node
 	alias_method :each, :each_event
 
 
+	### Wait for an event of a given +event_type+ (e.g., :JOIN) and matching any
+	### optional +criteria+, returning the event if a matching one was seen. If a
+	### +timeout+ is given and the event hasn't been seen after the +timeout+
+	### seconds have elapsed, return +nil+. If a block is given, call the block
+	### for each (non-matching) event that arrives in the interim. Note that the
+	### execution time of the block is counted in the timeout.
+	def wait_for( event_type, timeout: nil, **criteria, &block )
+		expected_type = Zyre::Event.type_by_name( event_type ) or
+			raise ArgumentError, "no such event type %p" % [ event_type ]
+
+		if timeout
+			return self.wait_for_with_timeout( expected_type, timeout, **criteria, &block )
+		else
+			return self.wait_for_indefinitely( expected_type, **criteria, &block )
+		end
+	end
+
+
 	#########
 	protected
 	#########
@@ -38,5 +58,61 @@ class Zyre::Node
 			end
 		end
 	end
+
+
+	### Wait for an event of the given +event_class+ and +criteria+, returning it when it
+	### arrives. Blocks indefinitely until it arrives or interrupted.
+	def wait_for_indefinitely( event_class, **criteria, &block )
+		poller = Zyre::Poller.new( self )
+		while poller.wait
+			event = self.recv
+			if event.kind_of?( event_class ) && event.match( criteria )
+				return event
+			else
+				block.call( event ) if block
+			end
+		end
+	end
+
+
+	### Wait for an event of the given +event_class+ and +criteria+, returning it if
+	### it arrives before +timeout+ seconds elapses. If the timeout elapses first,
+	### return +nil+.
+	def wait_for_with_timeout( event_class, timeout, **criteria, &block )
+		start_time = get_monotime()
+		timeout_at = start_time + timeout
+
+		poller = Zyre::Poller.new( self )
+
+		timeout = timeout_at - get_monotime()
+		while timeout > 0
+			if poller.wait( timeout )
+				event = self.recv
+				if event.kind_of?( event_class ) && event.match( criteria )
+					return event
+				else
+					block.call( event ) if block
+				end
+			else
+				break
+			end
+
+			timeout = timeout_at - get_monotime()
+		end
+
+		return nil
+
+	end
+
+
+	#######
+	private
+	#######
+
+	### Return the monotonic time.
+	def get_monotime
+		return Process.clock_gettime( Process::CLOCK_MONOTONIC )
+	end
+
 
 end # class Zyre::Node

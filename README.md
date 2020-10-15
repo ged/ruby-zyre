@@ -29,6 +29,13 @@ over local area networks.
     end
 
 
+### To-Do
+
+* Implement the draft API methods on Zyre::Node
+* Hook up logging via `zsys_set_logsender`
+* Add richer matching to Zyre::Event#match.
+
+
 ## Prerequisites
 
 * Ruby 2.7+

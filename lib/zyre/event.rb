@@ -6,6 +6,8 @@ require 'loggability'
 require 'zyre' unless defined?( Zyre )
 
 
+#--
+# See also: ext/zyre_ext/event.c
 class Zyre::Event
 	extend Loggability
 
@@ -40,20 +42,35 @@ class Zyre::Event
 	end
 
 
+	# Some convenience aliases
+	alias_method :message, :msg
+
+
+	### Returns +true+ if the specified +criteria+ match attribute of the event.
+	def match( criteria )
+		return criteria.all? do |key, val|
+			self.respond_to?( key ) && self.public_send( key ) == val
+		end
+	end
+
+
 	### Return a string describing this event, suitable for debugging.
 	def inspect
-		return "#<%p:%#016x %s from %s(%s) on «%s»: %p %p>" % [
+		details = self.inspect_details
+		details = ' ' + details unless details.start_with?( ' ' )
+
+		return "#<%p:%#016x%s>" % [
 			self.class,
 			self.object_id,
-			self.type,
-			self.peer_name,
-			self.peer_addr,
-			self.group,
-			self.headers,
-			self.msg,
+			details,
 		]
 	end
 
+
+	### Provide the details of the inspect message. Defaults to an empty string.
+	def inspect_details
+		return ''
+	end
 
 end # class Zyre::Event
 

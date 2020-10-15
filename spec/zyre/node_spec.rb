@@ -2,8 +2,7 @@
 
 require_relative '../spec_helper'
 
-require 'securerandom'
-require 'zyre'
+require 'zyre/node'
 
 
 RSpec.describe( Zyre::Node ) do
@@ -17,44 +16,6 @@ RSpec.describe( Zyre::Node ) do
 	I too am not a bit tamed—I too am untranslatable;
 	I sound my barbaric yawp over the roofs of the world.
 	END_SHOUT
-
-
-	let( :gossip_hub ) { "inproc://gossip-hub-%s" % [ SecureRandom.hex(16) ] }
-
-
-	before( :each ) do
-		@gossip_endpoint = nil
-		@nodes = []
-	end
-
-	after( :each ) do
-		@nodes.each( &:stop )
-	end
-
-
-	### Return a node that's been configured and started.
-	def started_node
-		node = described_class.new
-		# node.verbose!
-
-		node.endpoint = 'inproc://node-test-%s' % [ SecureRandom.hex(16) ]
-
-		if @gossip_endpoint
-			# $stderr.puts "Connecting to %p" % [ @gossip_endpoint ]
-			node.gossip_connect( @gossip_endpoint )
-		else
-			@gossip_endpoint = gossip_hub()
-			# $stderr.puts "Binding to %p" % [ @gossip_endpoint ]
-			node.gossip_bind( @gossip_endpoint )
-			sleep 0.25
-		end
-
-		# $stderr.puts "Starting %p" % [ node ]
-		node.start
-		@nodes << node
-
-		return node
-	end
 
 
 	it "can be created anonymously" do
@@ -214,6 +175,101 @@ RSpec.describe( Zyre::Node ) do
 		events = node1.each_event.take( 2 )
 		expect( events ).to all( be_a Zyre::Event )
 	end
+
+
+	it "can wait for a specified event type" do
+		node1 = started_node()
+		node1.join( 'wait-test' )
+
+		node2 = started_node()
+		node2.join( 'wait-test' )
+
+		node1.wait_for( :JOIN )
+
+		node2.shout( 'wait-test', "A broadcast message" )
+
+		result = node1.wait_for( :SHOUT )
+
+		expect( result ).to be_a( Zyre::Event::Shout ).
+			and( have_attributes(message: 'A broadcast message') )
+	end
+
+
+	it "can wait for a specified event to arrive within a time limit" do
+		node1 = started_node()
+		node1.join( 'wait-timeout-test' )
+
+		wait( 3 ).for {
+			node1.wait_for( :JOIN, timeout: 2 )
+		}.to be_nil
+
+		node2 = started_node()
+		node2.join( 'wait-timeout-test' )
+
+		wait( 3 ).for {
+			node1.wait_for( :JOIN, timeout: 2 )
+		}.to be_a( Zyre::Event::Join ).and( have_attributes(peer_uuid: node2.uuid) )
+	end
+
+
+	it "can wait for a specified event with specific attributes" do
+		node1 = started_node()
+		node1.join( 'wait-test' )
+
+		node2 = started_node()
+		node2.join( 'wait-test' )
+
+		node1.wait_for( :JOIN, peer_uuid: node2.uuid )
+
+		node2.shout( 'wait-test', "A broadcast message" )
+		node2.shout( 'wait-test', "Another broadcast message" )
+
+		skipped_events = []
+		result = node1.wait_for( :SHOUT, message: "Another broadcast message" ) do |event|
+			skipped_events << event
+		end
+
+		expect( result ).to be_a( Zyre::Event::Shout ).
+			and( have_attributes(message: 'Another broadcast message') )
+		expect( skipped_events.size ).to eq( 1 )
+		expect( skipped_events.first ).to be_a( Zyre::Event::Shout ).
+			and( have_attributes(message: "A broadcast message") )
+	end
+
+
+	it "can wait for a specified event with specific attributes to arrive within a time limit" do
+		node1 = started_node()
+		node1.join( 'wait-test' )
+
+		node2 = started_node()
+		node2.join( 'wait-test' )
+
+		node1.wait_for( :JOIN, timeout: 0.5, peer_uuid: node2.uuid )
+
+		node2.shout( 'wait-test', "A broadcast message" )
+
+		skipped_events = []
+		result = node1.wait_for( :SHOUT, timeout: 0.5, message: "Another broadcast message" ) do |event|
+			skipped_events << event
+		end
+
+		expect( result ).to be_nil
+		expect( skipped_events.size ).to eq( 1 )
+		expect( skipped_events.first ).to be_a( Zyre::Event::Shout ).
+			and( have_attributes(message: "A broadcast message") )
+
+		node2.shout( 'wait-test', "Another broadcast message" )
+
+		skipped_events.clear
+		result = node1.wait_for( :SHOUT, timeout: 0.5, message: "Another broadcast message" ) do |event|
+			skipped_events << event
+		end
+
+		expect( result ).to be_a( Zyre::Event::Shout ).
+			and( have_attributes(message: 'Another broadcast message') )
+		expect( skipped_events ).to be_empty
+	end
+
 
 end
 

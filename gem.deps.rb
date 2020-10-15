@@ -11,5 +11,7 @@ group :development do
 	gem 'rubocop', '~> 0.91'
 	gem 'rspec_junit_formatter', '~> 0.4'
 	gem 'simplecov-cobertura', '~> 1.4'
+	gem 'observability', '~> 0.3'
+	gem 'rspec-wait', '~> 0.0'
 end
 

@@ -208,6 +208,7 @@ rzyre_poller_wait( int argc, VALUE *argv, VALUE self )
 	VALUE rval = Qnil;
 	zsock_t *sock;
 	VALUE timeout_arg;
+	VALUE nodemap = rb_ivar_get( self, rb_intern("@nodes") );
 	int timeout = -1;
 	wait_call_t call;
 
@@ -215,13 +216,15 @@ rzyre_poller_wait( int argc, VALUE *argv, VALUE self )
 		timeout = floor( NUM2DBL(timeout_arg) * 1000 );
 	}
 
+	rzyre_log_obj( self, "debug", "waiting on %d socket/s (timeout: %d)",
+		 RHASH_SIZE(nodemap), timeout );
+
 	call.poller = ptr;
 	call.timeout = timeout;
 	sock = (zsock_t *)rb_thread_call_without_gvl2( rzyre_poller_wait_without_gvl, (void *)&call,
 		RUBY_UBF_IO, 0 );
 
 	if ( sock ) {
-		VALUE nodemap = rb_ivar_get( self, rb_intern("@nodes") );
 		const char *endpoint = zsock_endpoint( sock );
 		rval = rb_hash_aref( nodemap, rb_str_new2(endpoint) );
 	}
@@ -242,6 +245,15 @@ rzyre_init_poller( void ) {
 	rzyre_mZyre = rb_define_module( "Zyre" );
 #endif
 
+	/*
+	 * Document-class: Zyre::Poller
+	 *
+	 * A poller for evented Zyre IO. Built on zpoller from czmq.
+	 *
+	 * Refs:
+	 * - http://api.zeromq.org/czmq3-0:zpoller
+	 *
+	 */
 	rzyre_cZyrePoller = rb_define_class_under( rzyre_mZyre, "Poller", rb_cObject );
 
 	rb_define_alloc_func( rzyre_cZyrePoller, rzyre_poller_alloc );
