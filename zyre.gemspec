@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
-# stub: zyre 0.1.0.pre.20201019102415 ruby lib
+# stub: zyre 0.1.0.pre.20201019142658 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "zyre".freeze
-  s.version = "0.1.0.pre.20201019102415"
+  s.version = "0.1.0.pre.20201019142658"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1".freeze) if s.respond_to? :required_rubygems_version=
   s.metadata = { "changelog_uri" => "https://deveiate.org/code/rbzyre/History_md.html", "documentation_uri" => "https://deveiate.org/code/rbzyre", "homepage_uri" => "https://gitlab.com/ravngroup/open-source/ruby-zyre", "source_uri" => "https://gitlab.com/ravngroup/open-source/ruby-zyre/-/tree/master" } if s.respond_to? :metadata=

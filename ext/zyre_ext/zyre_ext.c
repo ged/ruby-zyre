@@ -119,9 +119,9 @@ rzyre_s_interfaces()
 		const char *netmask_s = ziflist_netmask( iflist );
 		const VALUE info_hash = rb_hash_new();
 
-		rb_hash_aset( info_hash, rb_intern("address"), rb_usascii_str_new_cstr(address_s) );
-		rb_hash_aset( info_hash, rb_intern("broadcast"), rb_usascii_str_new_cstr(broadcast_s) );
-		rb_hash_aset( info_hash, rb_intern("netmask"), rb_usascii_str_new_cstr(netmask_s) );
+		rb_hash_aset( info_hash, ID2SYM(rb_intern("address")), rb_usascii_str_new_cstr(address_s) );
+		rb_hash_aset( info_hash, ID2SYM(rb_intern("broadcast")), rb_usascii_str_new_cstr(broadcast_s) );
+		rb_hash_aset( info_hash, ID2SYM(rb_intern("netmask")), rb_usascii_str_new_cstr(netmask_s) );
 
 		rb_hash_aset( rval, rb_usascii_str_new_cstr(iface), info_hash );
 
