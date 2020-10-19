@@ -12,5 +12,10 @@ RSpec.describe Zyre do
 		expect( described_class.zyre_version ).to be >= 2_00_00
 	end
 
+
+	it "knows what broadcast-capable network interfaces are available" do
+		expect( described_class.interfaces ).to be_a( Hash )
+	end
+
 end
 
