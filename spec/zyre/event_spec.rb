@@ -58,6 +58,18 @@ RSpec.describe( Zyre::Event ) do
 		end
 
 
+		it "can return its type as a String" do
+			expect( described_class.type_by_name(:enter).type_name ).to eq( 'ENTER' )
+			expect( described_class.type_by_name(:evasive).type_name ).to eq( 'EVASIVE' )
+			expect( described_class.type_by_name(:silent).type_name ).to eq( 'SILENT' )
+			expect( described_class.type_by_name(:exit).type_name ).to eq( 'EXIT' )
+			expect( described_class.type_by_name(:join).type_name ).to eq( 'JOIN' )
+			expect( described_class.type_by_name(:leave).type_name ).to eq( 'LEAVE' )
+			expect( described_class.type_by_name(:whisper).type_name ).to eq( 'WHISPER' )
+			expect( described_class.type_by_name(:shout).type_name ).to eq( 'SHOUT' )
+		end
+
+
 		it "returns nil for non-existent subtypes" do
 			expect( described_class.type_by_name(:boom) ).to be_nil
 		end
@@ -96,6 +108,24 @@ RSpec.describe( Zyre::Event ) do
 
 
 		it "matches Regexp patterns as values"
+
+	end
+
+
+	describe "synthesis API" do
+
+		let( :peer_uuid ) { '8D9B6F67-2B40-4E56-B352-39029045B568' }
+
+
+		it "can generate events without a node" do
+			result = described_class.synthesize( :ENTER,
+				peer_uuid, peer_name: 'node1', peer_addr: 'in-proc:/synthesized' )
+
+			expect( result ).to be_a( described_class::Enter )
+			expect( result.peer_uuid ).to eq( peer_uuid )
+			expect( result.peer_name ).to eq( 'node1' )
+			expect( result.peer_addr ).to eq( 'in-proc:/synthesized' )
+		end
 
 	end
 

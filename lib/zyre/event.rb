@@ -42,6 +42,12 @@ class Zyre::Event
 	end
 
 
+	### Return the event type as Zyre refers to it.
+	def self::type_name
+		return self.name[ /.*::(\w+)/, 1 ].upcase
+	end
+
+
 	# Some convenience aliases
 	alias_method :message, :msg
 

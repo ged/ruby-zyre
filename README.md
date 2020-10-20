@@ -31,10 +31,10 @@ over local area networks.
 
 ### To-Do
 
+* Implement Zyre::Node#peer_groups and Zyre::Node#peer_address
 * Implement the draft API methods on Zyre::Node
 * Hook up logging via `zsys_set_logsender`
 * Add richer matching to Zyre::Event#match.
-
 
 ## Prerequisites
 

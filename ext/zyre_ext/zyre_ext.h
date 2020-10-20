@@ -27,6 +27,18 @@
 #endif
 
 
+// For synthesized events
+struct _zyre_event_t {
+    char *type;             //  Event type as string
+    char *peer_uuid;        //  Sender UUID as string
+    char *peer_name;        //  Sender public name as string
+    char *peer_addr;        //  Sender ipaddress as string, for an ENTER event
+    zhash_t *headers;       //  Headers, for an ENTER event
+    char *group;            //  Group name for a SHOUT event
+    zmsg_t *msg;            //  Message payload for SHOUT or WHISPER
+};
+
+
 /* --------------------------------------------------------------
  * Declarations
  * -------------------------------------------------------------- */

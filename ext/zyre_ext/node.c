@@ -32,7 +32,9 @@ static const rb_data_type_t rzyre_node_t = {
 static void
 rzyre_node_free( void *ptr )
 {
-	zyre_destroy( (zyre_t **)&ptr );
+	if ( ptr ) {
+		zyre_destroy( (zyre_t **)&ptr );
+	}
 }
 
 

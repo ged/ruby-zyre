@@ -35,11 +35,33 @@ RSpec.describe( Zyre::Node ) do
 	end
 
 
-	it "can have one or more headers" do
-		node = described_class.new
-		expect {
-			node.evasive_timeout = 225
-		}.to_not raise_error
+	it "can set headers" do
+		node1 = started_node do |n|
+			n.set_header( 'Protocol-version', '2' )
+		end
+		node2 = started_node
+
+		event = node2.wait_for( :ENTER )
+
+		expect( event.headers ).to eq({ 'Protocol-version' => '2' })
+	end
+
+
+	it "can set headers from a hash" do
+		node1 = started_node do |n|
+			n.headers = {
+				protocol_version: 2,
+				content_type: 'application/messagepack'
+			}
+		end
+		node2 = started_node
+
+		event = node2.wait_for( :ENTER )
+
+		expect( event.headers ).to eq({
+			'Protocol-version' => '2',
+			'Content-type' => 'application/messagepack'
+		})
 	end
 
 

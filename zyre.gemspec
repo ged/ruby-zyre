@@ -1,15 +1,15 @@
 # -*- encoding: utf-8 -*-
-# stub: zyre 0.1.0.pre.20201019142658 ruby lib
+# stub: zyre 0.1.0.pre.20201020134448 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "zyre".freeze
-  s.version = "0.1.0.pre.20201019142658"
+  s.version = "0.1.0.pre.20201020134448"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1".freeze) if s.respond_to? :required_rubygems_version=
   s.metadata = { "changelog_uri" => "https://deveiate.org/code/rbzyre/History_md.html", "documentation_uri" => "https://deveiate.org/code/rbzyre", "homepage_uri" => "https://gitlab.com/ravngroup/open-source/ruby-zyre", "source_uri" => "https://gitlab.com/ravngroup/open-source/ruby-zyre/-/tree/master" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Michael Granger".freeze]
-  s.date = "2020-10-19"
+  s.date = "2020-10-20"
   s.description = "This is a Ruby (MRI) binding for the Zyre library for reliable group messaging over local area networks.".freeze
   s.email = ["ged@faeriemud.org".freeze]
   s.files = ["History.md".freeze, "LICENSE.txt".freeze, "README.md".freeze, "ext/zyre_ext/event.c".freeze, "ext/zyre_ext/node.c".freeze, "ext/zyre_ext/poller.c".freeze, "ext/zyre_ext/zyre_ext.c".freeze, "ext/zyre_ext/zyre_ext.h".freeze, "lib/zyre.rb".freeze, "lib/zyre/event.rb".freeze, "lib/zyre/node.rb".freeze, "lib/zyre/poller.rb".freeze, "spec/spec_helper.rb".freeze, "spec/zyre/event_spec.rb".freeze, "spec/zyre/node_spec.rb".freeze, "spec/zyre/poller_spec.rb".freeze, "spec/zyre_spec.rb".freeze]

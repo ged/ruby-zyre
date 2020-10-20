@@ -71,9 +71,8 @@ module Zyre::SpecHelpers
 	### Return a node that's been configured and started.
 	def started_node( name=nil )
 		node = Zyre::Node.new( name )
-		# node.verbose!
-
 		node.endpoint = 'inproc://node-test-%s' % [ SecureRandom.hex(16) ]
+		yield( node ) if block_given?
 
 		if @gossip_endpoint
 			# $stderr.puts "Connecting to %p" % [ @gossip_endpoint ]

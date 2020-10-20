@@ -32,7 +32,9 @@ static const rb_data_type_t rzyre_event_t = {
 static void
 rzyre_event_free( void *ptr )
 {
-	zyre_event_destroy( (zyre_event_t **)&ptr );
+	if ( ptr ) {
+		zyre_event_destroy( (zyre_event_t **)&ptr );
+	}
 }
 
 
@@ -110,6 +112,151 @@ rzyre_event_s_from_node( VALUE klass, VALUE node )
 	} else {
 		return Qnil;
 	}
+}
+
+
+char *
+rzyre_copy_string( VALUE string )
+{
+	const char *c_string = StringValueCStr( string );
+	char *copy = (char *) zmalloc( strlen(c_string) );
+
+	assert( copy );
+	stpncpy( copy, c_string, strlen(c_string) );
+
+	return copy;
+}
+
+
+char *
+rzyre_copy_required_string( VALUE string, const char *field_name )
+{
+	if ( RB_TYPE_P(string, T_UNDEF) ) {
+		rb_raise( rb_eArgError, "missing required field :%s", field_name );
+		// return (const char *)NULL;
+	} else {
+		return rzyre_copy_string( string );
+	}
+}
+
+
+static int
+rzyre_zhash_from_rhash_i( VALUE key, VALUE value, VALUE zhash_ptr )
+{
+	zhash_t *zhash = (zhash_t *)zhash_ptr;
+
+	zhash_insert( zhash, StringValueCStr(key), StringValueCStr(value) );
+
+	return ST_CONTINUE;
+}
+
+
+static zhash_t *
+rzyre_zhash_from_rhash( VALUE ruby_hash )
+{
+	zhash_t *zhash = zhash_new();
+
+	// If it was passed, it should be a Hash
+	// :FIXME: Allow anything that ducktypes with :each_pair?
+	if ( !RB_TYPE_P(ruby_hash, T_UNDEF) ) {
+		Check_Type( ruby_hash, T_HASH );
+		rb_hash_foreach( ruby_hash, rzyre_zhash_from_rhash_i, (VALUE)zhash );
+	}
+
+	return zhash;
+}
+
+
+/*
+ * call-seq:
+ *    Zyre::Event.synthesized( type, peer_uuid, **fields )   -> event
+ *
+ * Create an event in memory without going through a Zyre::Node. This is useful for
+ * testing.
+ *
+ *    uuid = UUID.generate
+ *    event = Zyre::Event.synthesized( :ENTER, peer_uuid: uuid, peer_name: 'node1' )
+ *    expect( some_system.handle_event(event) ).to have_handled_an_enter_event
+ *
+ */
+static VALUE
+rzyre_event_s_synthesize( int argc, VALUE *argv, VALUE klass )
+{
+	VALUE rval, event_type, peer_uuid, kwargs, event_class;
+	static VALUE kwvals[5];
+	static ID keyword_ids[5];
+	zyre_event_t *ptr = NULL;
+
+	// Parse the arguments + keyword arguments
+	if ( !keyword_ids[0] ) {
+		CONST_ID( keyword_ids[0], "peer_name");
+		CONST_ID( keyword_ids[1], "headers");
+		CONST_ID( keyword_ids[2], "peer_addr");
+		CONST_ID( keyword_ids[3], "group");
+		CONST_ID( keyword_ids[4], "msg");
+	}
+
+	rb_scan_args( argc, argv, "2:", &event_type, &peer_uuid, &kwargs );
+	if ( RTEST(kwargs) ) {
+		rb_get_kwargs( kwargs, keyword_ids, 0, 5, kwvals );
+	}
+
+	// Translate the event type argument into the appropriate class and instantiate it
+	event_class = rb_funcall( klass, rb_intern("type_by_name"), 1, event_type );
+	event_type = rb_funcall( event_class, rb_intern("type_name"), 0 );
+	rval = rb_class_new_instance( 0, NULL, event_class );
+
+	// Set up the zyre_event memory for the object
+	RTYPEDDATA_DATA( rval ) = ptr = (zyre_event_t *) zmalloc( sizeof *ptr );
+
+	// Set the values that are required for every event type
+	ptr->type = rzyre_copy_string( event_type );
+	ptr->peer_uuid = rzyre_copy_string( peer_uuid );
+
+	// Set the peer_name or derive it from the peer_uuid if unset
+	if ( RTEST(kwvals[0]) ) {
+		ptr->peer_name = rzyre_copy_string( kwvals[0] );
+	} else {
+		ptr->peer_name = (char *) zmalloc( 2 + 6 + 1 );
+		assert( ptr->peer_name );
+		bzero( ptr->peer_name, 2 + 6 + 1 );
+		strncpy( ptr->peer_name, "S-", 2 );
+		memcpy( ptr->peer_name + 2, ptr->type, 6 );
+	}
+
+	if ( streq(ptr->type, "ENTER") ) {
+		ptr->peer_addr = rzyre_copy_required_string( kwvals[2], "peer_addr" );
+		ptr->headers = rzyre_zhash_from_rhash( kwvals[1] );
+	}
+	else if ( streq(ptr->type, "JOIN") ) {
+		ptr->group = rzyre_copy_required_string( kwvals[3], "group" );
+	}
+	else if ( streq(ptr->type, "LEAVE") ) {
+		ptr->group = rzyre_copy_required_string( kwvals[3], "group" );
+	}
+	else if ( streq(ptr->type, "WHISPER") ) {
+		const char *msg_str = rzyre_copy_required_string( kwvals[4], "msg" );
+		zmsg_t *msg = zmsg_new();
+
+		zmsg_addstr( msg, msg_str );
+		ptr->msg = msg;
+		msg = NULL;
+	}
+	else if ( streq(ptr->type, "SHOUT") ) {
+		const char *msg_str = rzyre_copy_required_string( kwvals[4], "msg" );
+		zmsg_t *msg = zmsg_new();
+
+		zmsg_addstr( msg, msg_str );
+
+		ptr->group = rzyre_copy_required_string( kwvals[3], "group" );
+		ptr->msg = msg;
+		msg = NULL;
+	}
+	else if ( streq(ptr->type, "LEADER") ) {
+		ptr->group = rzyre_copy_required_string( kwvals[3], "group" );
+	}
+
+	return rval;
 }
 
 
@@ -197,11 +344,11 @@ rzyre_event_headers( VALUE self ) {
 	const char *key, *val;
 
 	if ( headers ) {
-		key = (const char *)zhash_first( headers );
-		while( key ) {
-			val = zhash_cursor( headers );
+		val = (const char *)zhash_first( headers );
+		while( val ) {
+			key = zhash_cursor( headers );
 			rb_hash_aset( rhash, rb_str_new2(key), rb_str_new2(val) );
-			key = (const char *)zhash_next( headers );
+			val = (const char *)zhash_next( headers );
 		}
 	}
 
@@ -316,6 +463,7 @@ rzyre_init_event( void ) {
 	rb_define_alloc_func( rzyre_cZyreEvent, rzyre_event_alloc );
 
 	rb_define_singleton_method( rzyre_cZyreEvent, "from_node", rzyre_event_s_from_node, 1 );
+	rb_define_singleton_method( rzyre_cZyreEvent, "synthesize", rzyre_event_s_synthesize, -1 );
 
 	rb_define_method( rzyre_cZyreEvent, "type", rzyre_event_type, 0 );
 	rb_define_method( rzyre_cZyreEvent, "peer_uuid", rzyre_event_peer_uuid, 0 );

@@ -32,7 +32,9 @@ static const rb_data_type_t rzyre_poller_t = {
 static void
 rzyre_poller_free( void *ptr )
 {
-	zpoller_destroy( (zpoller_t **)&ptr );
+	if ( ptr ) {
+		zpoller_destroy( (zpoller_t **)&ptr );
+	}
 }
 
 
