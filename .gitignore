@@ -2,6 +2,7 @@ docs/
 tmp/
 *.bundle
 *.lock
+*.gem
 spec/.status
 coverage/
 vendor/
