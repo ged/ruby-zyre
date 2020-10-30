@@ -63,6 +63,18 @@ class Zyre::Node
 	end
 
 
+	### Return a string describing the node suitable for debugging.
+	def inspect
+		return "#<%p:%#016x %s[%s]>" % [
+			self.class,
+			self.object_id,
+			self.name,
+			self.uuid,
+		]
+	end
+
+
+
 	#########
 	protected
 	#########

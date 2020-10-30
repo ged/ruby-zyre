@@ -390,6 +390,7 @@ rzyre_node_gossip_bind( VALUE self, VALUE endpoint )
 	const char *endpoint_str = StringValueCStr( endpoint );
 
 	assert( endpoint_str );
+	rzyre_log_obj( self, "debug", "Binding to gossip endpoint %s.", endpoint_str );
 	zyre_gossip_bind( ptr, "%s", endpoint_str );
 
 	return Qtrue;
@@ -412,6 +413,7 @@ rzyre_node_gossip_connect( VALUE self, VALUE endpoint )
 	const char *endpoint_str = StringValueCStr( endpoint );
 
 	assert( endpoint_str );
+	rzyre_log_obj( self, "debug", "Connecting to gossip endpoint %s.", endpoint_str );
 	zyre_gossip_connect( ptr, "%s", endpoint_str );
 
 	return Qtrue;
@@ -433,6 +435,7 @@ rzyre_node_start( VALUE self )
 	zyre_t *ptr = rzyre_get_node( self );
 	int res;
 
+	rzyre_log_obj( self, "debug", "Starting." );
 	res = zyre_start( ptr );
 
 	if ( res == 0 ) return Qtrue;
@@ -455,6 +458,7 @@ rzyre_node_stop( VALUE self )
 	zyre_t *ptr = rzyre_get_node( self );
 
 	assert( ptr );
+	rzyre_log_obj( self, "debug", "Stopping." );
 	zyre_stop( ptr );
 
 	return Qtrue;
@@ -476,6 +480,7 @@ rzyre_node_join( VALUE self, VALUE group )
 	const char *group_str = StringValueCStr( group );
 	int res;
 
+	rzyre_log_obj( self, "debug", "Joining group %s.", group_str );
 	res = zyre_join( ptr, group_str );
 
 	return INT2FIX( res );
@@ -496,6 +501,7 @@ rzyre_node_leave( VALUE self, VALUE group )
 	const char *group_str = StringValueCStr( group );
 	int res;
 
+	rzyre_log_obj( self, "debug", "Leaving group %s.", group_str );
 	res = zyre_leave( ptr, group_str );
 
 	return INT2FIX( res );
@@ -576,7 +582,25 @@ rzyre_node_shout( VALUE self, VALUE group, VALUE msg )
 static VALUE
 rzyre_node_peers( VALUE self )
 {
-	return Qnil;
+	zyre_t *ptr;
+	zlist_t *peers;
+	VALUE rary = rb_ary_new();
+	char *item = NULL;
+
+	ptr = rzyre_get_node( self );
+	assert( ptr );
+
+	peers = zyre_peers( ptr );
+	assert( peers );
+
+	item = zlist_first( peers );
+	while ( item ) {
+		rb_ary_push( rary, rb_str_new2(item) );
+		item = zlist_next( peers );
+	}
+
+	zlist_destroy( &peers );
+	return rary;
 }
 
 
@@ -651,7 +675,21 @@ rzyre_node_own_groups( VALUE self )
 static VALUE
 rzyre_node_peer_groups( VALUE self )
 {
-	return Qnil;
+	zyre_t *ptr = rzyre_get_node( self );
+	zlist_t *groups = zyre_peer_groups( ptr );
+	VALUE rary = rb_ary_new();
+	char *item = NULL;
+
+	assert( groups );
+
+	item = zlist_first( groups );
+	while ( item ) {
+		rb_ary_push( rary, rb_str_new2(item) );
+		item = zlist_next( groups );
+	}
+
+	zlist_destroy( &groups );
+	return rary;
 }
 
 
@@ -666,7 +704,17 @@ rzyre_node_peer_groups( VALUE self )
 static VALUE
 rzyre_node_peer_address( VALUE self, VALUE peer_uuid )
 {
-	return Qnil;
+	zyre_t *ptr = rzyre_get_node( self );
+	const char *peer = StringValueCStr( peer_uuid );
+	char *address = zyre_peer_address( ptr, peer );
+	VALUE rval = Qnil;
+
+	if ( strnlen(address, BUFSIZ) ) {
+		rval = rb_str_new2( address );
+	}
+
+	free( address );
+	return rval;
 }
 
 
@@ -758,7 +806,6 @@ rzyre_init_node( void )
 	rb_define_method( rzyre_cZyreNode, "endpoint=", rzyre_node_endpoint_eq, 1 );
 	rb_define_method( rzyre_cZyreNode, "endpoint", rzyre_node_endpoint, 0 );
 
-	rb_define_method( rzyre_cZyreNode, "verbose!", rzyre_node_verbose_bang, 0 );
 	rb_define_method( rzyre_cZyreNode, "set_header", rzyre_node_set_header, 2 );
 
 	rb_define_method( rzyre_cZyreNode, "gossip_bind", rzyre_node_gossip_bind, 1 );
@@ -771,14 +818,18 @@ rzyre_init_node( void )
 	rb_define_method( rzyre_cZyreNode, "leave", rzyre_node_leave, 1 );
 
 	rb_define_method( rzyre_cZyreNode, "recv", rzyre_node_recv, 0 );
+
 	rb_define_method( rzyre_cZyreNode, "whisper", rzyre_node_whisper, 2 );
 	rb_define_method( rzyre_cZyreNode, "shout", rzyre_node_shout, 2 );
+
 	rb_define_method( rzyre_cZyreNode, "peers", rzyre_node_peers, 0 );
 	rb_define_method( rzyre_cZyreNode, "peers_by_group", rzyre_node_peers_by_group, 1 );
 	rb_define_method( rzyre_cZyreNode, "own_groups", rzyre_node_own_groups, 0 );
 	rb_define_method( rzyre_cZyreNode, "peer_groups", rzyre_node_peer_groups, 0 );
 	rb_define_method( rzyre_cZyreNode, "peer_address", rzyre_node_peer_address, 1 );
 	rb_define_method( rzyre_cZyreNode, "peer_header_value", rzyre_node_peer_header_value, 2 );
+
+	rb_define_method( rzyre_cZyreNode, "verbose!", rzyre_node_verbose_bang, 0 );
 	rb_define_method( rzyre_cZyreNode, "print", rzyre_node_print, 0 );
 
 #ifdef ZYRE_BUILD_DRAFT_API

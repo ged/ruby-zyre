@@ -7,13 +7,13 @@ code
 : https://gitlab.com/ravngroup/open-source/ruby-zyre/-/tree/master
 
 docs
-: https://deveiate.org/code/rbzyre
+: https://deveiate.org/code/zyre
 
 
 ## Description
 
-This is a Ruby (MRI) binding for the Zyre library for reliable group messaging
-over local area networks.
+A ZRE library for Ruby. This is a Ruby (MRI) binding for the Zyre library for
+reliable group messaging over local area networks, an implementation of [the ZeroMQ Realtime Exchange protocol][ZRE].
 
 
 ### Examples
@@ -50,8 +50,7 @@ over local area networks.
 ## Contributing
 
 You can check out the current development source with Mercurial via its
-[project page](http://bitbucket.org/ged/rbzyre). Or if you prefer Git, via
-[its Github mirror](https://github.com/ged/rbzyre).
+[project page](https://gitlab.com/ravngroup/open-source/ruby-zyre).
 
 After checking out the source, run:
 
@@ -97,4 +96,6 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+[ZRE]: https://rfc.zeromq.org/spec/36/
 

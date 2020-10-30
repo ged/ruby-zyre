@@ -117,12 +117,49 @@ RSpec.describe( Zyre::Node ) do
 	end
 
 
+	it "knows what groups are known via its connected peers" do
+		node1 = started_node()
+		node1.join( 'GLOBAL' )
+		node1.join( 'SPECIAL' )
+
+		node2 = started_node()
+
+		node1.wait_for( :ENTER, peer_uuid: node2.uuid )
+
+		expect( node2.peer_groups ).to contain_exactly( 'GLOBAL', 'SPECIAL' )
+	end
+
+
+	it "returns an empty array for known groups with no peers" do
+		node1 = started_node()
+
+		expect( node1.peer_groups ).to be_empty
+	end
+
+
+	it "knows what one of its peers' address is" do
+		node1 = started_node()
+		node2 = started_node()
+
+		enter_event = node1.wait_for( :ENTER, peer_uuid: node2.uuid )
+
+		expect( node1.peer_address(node2.uuid) ).to eq( enter_event.peer_addr )
+	end
+
+
+	it "returns nil for the address of non-existent peers" do
+		node1 = started_node()
+		node2 = Zyre::Node.new
+
+		expect( node1.peer_address(node2.uuid) ).to be_nil
+	end
+
+
 	it "can whisper to another node" do
 		node1 = started_node()
 		node2 = started_node()
 
-		sleep 0.25
-
+		node1.wait_for( :ENTER, peer_uuid: node2.uuid )
 		node1.whisper( node2.uuid, TEST_WHISPER )
 
 		ev = node2.recv
@@ -142,8 +179,7 @@ RSpec.describe( Zyre::Node ) do
 		node1.join( 'ROOFTOP' )
 		node2.join( 'ROOFTOP' )
 
-		sleep 0.25
-
+		node1.wait_for( :JOIN, group: 'ROOFTOP', peer_uuid: node2.uuid )
 		node1.shout( 'ROOFTOP', TEST_SHOUT )
 
 		ev = node2.recv
@@ -159,6 +195,27 @@ RSpec.describe( Zyre::Node ) do
 	end
 
 
+	it "knows who all of its peers are" do
+		node1 = started_node()
+		node2 = started_node()
+		node3 = started_node()
+		node4 = started_node()
+
+		3.times do
+			node1.wait_for( :ENTER )
+		end
+
+		expect( node1.peers ).to contain_exactly( node2.uuid, node3.uuid, node4.uuid )
+	end
+
+
+	it "returns an empty array for its peers if it has none" do
+		node1 = started_node()
+
+		expect( node1.peers ).to be_empty
+	end
+
+
 	it "knows who its peers for a certain group are" do
 		node1 = started_node()
 		node1.join( 'CHANNEL1' )
@@ -170,7 +227,9 @@ RSpec.describe( Zyre::Node ) do
 		node4 = started_node()
 		node4.join( 'CHANNEL2' )
 
-		sleep 0.25
+		2.times do
+			node1.wait_for( :JOIN, group: 'CHANNEL1' )
+		end
 
 		expect( node1.peers_by_group('CHANNEL1') ).
 			to contain_exactly( node2.uuid, node3.uuid )
@@ -192,7 +251,7 @@ RSpec.describe( Zyre::Node ) do
 		node2.join( 'CHANNEL1' )
 		node2.shout( 'CHANNEL1', "A broadcast message" )
 
-		sleep 0.25
+		node2.wait_for( :ENTER )
 
 		events = node1.each_event.take( 2 )
 		expect( events ).to all( be_a Zyre::Event )

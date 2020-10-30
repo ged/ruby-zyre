@@ -119,10 +119,10 @@ char *
 rzyre_copy_string( VALUE string )
 {
 	const char *c_string = StringValueCStr( string );
-	char *copy = (char *) zmalloc( strlen(c_string) );
+	char *copy = (char *) zmalloc( strnlen(c_string, BUFSIZ) + 1 );
 
 	assert( copy );
-	stpncpy( copy, c_string, strlen(c_string) );
+	stpncpy( copy, c_string, strnlen(c_string, BUFSIZ) + 1 );
 
 	return copy;
 }
@@ -133,7 +133,6 @@ rzyre_copy_required_string( VALUE string, const char *field_name )
 {
 	if ( RB_TYPE_P(string, T_UNDEF) ) {
 		rb_raise( rb_eArgError, "missing required field :%s", field_name );
-		// return (const char *)NULL;
 	} else {
 		return rzyre_copy_string( string );
 	}
@@ -175,7 +174,7 @@ rzyre_zhash_from_rhash( VALUE ruby_hash )
  * testing.
  *
  *    uuid = UUID.generate
- *    event = Zyre::Event.synthesized( :ENTER, peer_uuid: uuid, peer_name: 'node1' )
+ *    event = Zyre::Event.synthesized( :ENTER, uuid, peer_name: 'node1' )
  *    expect( some_system.handle_event(event) ).to have_handled_an_enter_event
  *
  */
@@ -213,8 +212,8 @@ rzyre_event_s_synthesize( int argc, VALUE *argv, VALUE klass )
 	ptr->type = rzyre_copy_string( event_type );
 	ptr->peer_uuid = rzyre_copy_string( peer_uuid );
 
-	// Set the peer_name or derive it from the peer_uuid if unset
-	if ( RTEST(kwvals[0]) ) {
+	// Set the peer_name or default it if it wasn't specified
+	if ( !RB_TYPE_P(kwvals[0], T_UNDEF) ) {
 		ptr->peer_name = rzyre_copy_string( kwvals[0] );
 	} else {
 		ptr->peer_name = (char *) zmalloc( 2 + 6 + 1 );
