@@ -57,7 +57,7 @@ class Zyre::Node
 	###
 	def headers=( hash )
 		hash.each do |key, val|
-			key = transform_header_key( key )
+			key = Zyre.transform_header_key( key )
 			self.set_header( key.to_s, val.to_s )
 		end
 	end
@@ -142,17 +142,6 @@ class Zyre::Node
 	### Return the monotonic time.
 	def get_monotime
 		return Process.clock_gettime( Process::CLOCK_MONOTONIC )
-	end
-
-
-	### If the given +key+ is a Symbol, transform it into an RFC822-style header key. If
-	### it's not a Symbol, returns it unchanged.
-	def transform_header_key( key )
-		if key.is_a?( Symbol )
-			key = key.to_s.gsub( /_/, '-' ).capitalize
-		end
-
-		return key
 	end
 
 end # class Zyre::Node

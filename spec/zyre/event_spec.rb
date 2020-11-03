@@ -127,6 +127,14 @@ RSpec.describe( Zyre::Event ) do
 			expect( result.peer_addr ).to eq( 'in-proc:/synthesized' )
 		end
 
+
+		it "defaults its peer_name to S- + six characters of the peer_uuid" do
+			result = described_class.synthesize( :ENTER,
+				peer_uuid, peer_addr: 'in-proc:/synthesized' )
+
+			expect( result.peer_name ).to eq( 'S-' + peer_uuid[0, 6] )
+		end
+
 	end
 
 end

@@ -220,7 +220,7 @@ rzyre_event_s_synthesize( int argc, VALUE *argv, VALUE klass )
 		assert( ptr->peer_name );
 		bzero( ptr->peer_name, 2 + 6 + 1 );
 		strncpy( ptr->peer_name, "S-", 2 );
-		memcpy( ptr->peer_name + 2, ptr->type, 6 );
+		memcpy( ptr->peer_name + 2, ptr->peer_uuid, 6 );
 	}
 
 	if ( streq(ptr->type, "ENTER") ) {

@@ -35,5 +35,21 @@ RSpec.describe Zyre do
 		expect( result[iface][:netmask] ).to match( IPV4_ADDRESS )
 	end
 
+
+	it "can normalize symbol-keyed headers into an RFC822-style string Hash" do
+		headers = {
+			protocol_version: 2,
+			content_type: 'application/json',
+			'disposition' => 'attachment'.b
+		}
+		result = described_class.normalize_headers( headers )
+
+		expect( result ).to include( 'Protocol-version', 'Content-type', 'disposition' )
+		expect( result['Protocol-version'] ).to eq( '2' )
+		expect( result['Content-type'] ).to eq( 'application/json' )
+		expect( result['disposition'] ).to eq( 'attachment' )
+		expect( result['disposition'].encoding ).to eq( Encoding::US_ASCII )
+	end
+
 end
 
