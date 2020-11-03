@@ -6,6 +6,9 @@ home
 code
 : https://gitlab.com/ravngroup/open-source/ruby-zyre/-/tree/master
 
+github
+: https://github.com/ged/ruby-zyre
+
 docs
 : https://deveiate.org/code/zyre
 
