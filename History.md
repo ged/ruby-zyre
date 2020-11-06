@@ -1,4 +1,8 @@
-## v0.0.1 [YYYY-MM-DD] Michael Granger <ged@FaerieMUD.org>
+# Release History for zyre
 
-Initial release.
+---
+
+## v0.1.0 [2020-11-05] Michael Granger <ged@faeriemud.org>
+
+First release.
 
