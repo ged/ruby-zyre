@@ -23,7 +23,7 @@ reliable group messaging over local area networks, an implementation of [the Zer
 
 Zyre is a P2P library which has two modes: pub/sub and direct messaging. To use it, you create a node, optionally join some groups (subscribing), and start it. Then you can send broadcast messages to all other nodes in a group, or direct messages to a particular node.
 
-This example join the Zyre network and dumps messages it sees in the 'global' group to stderr:
+This example joins the Zyre network and dumps messages it sees in the 'global' group to stderr:
 
     node = Zyre::Node.new
     node.join( 'global' )
@@ -99,7 +99,6 @@ and read it:
 
 ### To-Do
 
-* Implement Zyre::Node#peer_groups and Zyre::Node#peer_address
 * Implement the draft API methods on Zyre::Node
 * Hook up logging via `zsys_set_logsender`
 * Add richer matching to Zyre::Event#match.
