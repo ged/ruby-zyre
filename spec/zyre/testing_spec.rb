@@ -193,6 +193,14 @@ RSpec.describe( Zyre::Testing ) do
 		end
 
 
+		it "can create a valid WHISPER event with a multipart msg" do
+			event = factory.whisper( msg: %w[three times fool] )
+
+			expect( event ).to be_multipart
+			expect( event.multipart_msg ).to eq( %w[three times fool] )
+		end
+
+
 		it "can create a valid WHISPER event with overridden config" do
 			uuid = SecureRandom.uuid.tr( '-', '' )
 			event = factory.whisper( peer_uuid: uuid, msg: 'stop' )

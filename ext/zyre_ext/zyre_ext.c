@@ -68,6 +68,64 @@ rzyre_log( const char *level, const char *fmt, va_dcl )
 }
 
 
+/* --------------------------------------------------------------
+ * Utility functions
+ * -------------------------------------------------------------- */
+
+// Struct for passing arguments through rb_protect to rzyre_add_frames_to_zmsg()
+struct add_frames_to_zmsg_call {
+	zmsg_t *msg;
+	VALUE msg_parts;
+};
+typedef struct add_frames_to_zmsg_call add_frames_to_zmsg_call_t;
+
+
+/*
+ * Add a frame for each object in an Array.
+ */
+static VALUE
+rzyre_add_frames_to_zmsg( VALUE call )
+{
+	add_frames_to_zmsg_call_t *call_ptr = (add_frames_to_zmsg_call_t *)call;
+	VALUE msg_part;
+
+	for ( long i = 0 ; i < RARRAY_LEN(call_ptr->msg_parts) ; i++ ) {
+		msg_part = rb_ary_entry( call_ptr->msg_parts, i );
+		zmsg_addstr( call_ptr->msg, StringValueCStr(msg_part) );
+	}
+
+	return Qtrue;
+}
+
+
+/*
+ * Make and return a zmsg, with one frame per object in +messages+. Caller owns the returned
+ * zmsg. Can raise a TypeError if one of the +messages+ can't be stringified.
+ */
+zmsg_t *
+rzyre_make_zmsg_from( VALUE messages )
+{
+	VALUE msgarray = rb_Array( messages );
+	zmsg_t *msg = zmsg_new();
+	static add_frames_to_zmsg_call_t call;
+	int state;
+
+	call.msg = msg;
+	call.msg_parts = msgarray;
+
+	rb_protect( rzyre_add_frames_to_zmsg, (VALUE)&call, &state );
+
+	if ( state ) {
+		zmsg_destroy( &msg );
+		rb_jump_tag( state );
+	}
+
+	return msg;
+}
+
+
+
+
 
 /* --------------------------------------------------------------
  * Module methods

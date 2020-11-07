@@ -1,16 +1,16 @@
 # -*- encoding: utf-8 -*-
-# stub: zyre 0.2.0.pre.20201106181842 ruby lib
+# stub: zyre 0.2.0.pre.20201107003239 ruby lib
 # stub: ext/zyre_ext/extconf.rb
 
 Gem::Specification.new do |s|
   s.name = "zyre".freeze
-  s.version = "0.2.0.pre.20201106181842"
+  s.version = "0.2.0.pre.20201107003239"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1".freeze) if s.respond_to? :required_rubygems_version=
   s.metadata = { "changelog_uri" => "https://deveiate.org/code/zyre/History_md.html", "documentation_uri" => "https://deveiate.org/code/zyre", "homepage_uri" => "https://gitlab.com/ravngroup/open-source/ruby-zyre", "source_uri" => "https://gitlab.com/ravngroup/open-source/ruby-zyre/-/tree/master" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Michael Granger".freeze]
-  s.date = "2020-11-06"
+  s.date = "2020-11-07"
   s.description = "A ZRE library for Ruby. This is a Ruby (MRI) binding for the Zyre library for reliable group messaging over local area networks, an implementation of the ZeroMQ Realtime Exchange protocol.".freeze
   s.email = ["ged@faeriemud.org".freeze]
   s.extensions = ["ext/zyre_ext/extconf.rb".freeze]

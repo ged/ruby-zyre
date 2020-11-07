@@ -135,6 +135,55 @@ RSpec.describe( Zyre::Event ) do
 			expect( result.peer_name ).to eq( 'S-' + peer_uuid[0, 6] )
 		end
 
+
+		it "raises when creating a WHISPER with no msg" do
+			expect {
+				described_class.synthesize( :WHISPER, peer_uuid )
+			}.to raise_error( ArgumentError, /missing required field :msg/i )
+		end
+
+
+		it "raises when creating a SHOUT with no msg" do
+			expect {
+				described_class.synthesize( :SHOUT, peer_uuid, group: 'agroup' )
+			}.to raise_error( ArgumentError, /missing required field :msg/i )
+		end
+
+
+		it "raises when creating a SHOUT with no group" do
+			expect {
+				described_class.synthesize( :SHOUT, peer_uuid, msg: 'amsg' )
+			}.to raise_error( ArgumentError, /missing required field :group/i )
+		end
+
+
+		it "raises when creating an ENTER with no peer_addr" do
+			expect {
+				described_class.synthesize( :ENTER, peer_uuid )
+			}.to raise_error( ArgumentError, /missing required field :peer_addr/i )
+		end
+
+
+		it "raises when creating a JOIN with no group" do
+			expect {
+				described_class.synthesize( :JOIN, peer_uuid )
+			}.to raise_error( ArgumentError, /missing required field :group/i )
+		end
+
+
+		it "raises when creating a LEAVE with no group" do
+			expect {
+				described_class.synthesize( :LEAVE, peer_uuid )
+			}.to raise_error( ArgumentError, /missing required field :group/i )
+		end
+
+
+		it "raises when creating an unknown type of event" do
+			expect {
+				described_class.synthesize( :BACKUP, peer_uuid )
+			}.to raise_error( ArgumentError, /don't know how to create :BACKUP events/i )
+		end
+
 	end
 
 end

@@ -121,6 +121,7 @@ rzyre_copy_string( VALUE string )
 	const char *c_string = StringValueCStr( string );
 	char *copy = (char *) zmalloc( strnlen(c_string, BUFSIZ) + 1 );
 
+	rzyre_log( "debug", "Copying string `%s`.", c_string );
 	assert( copy );
 	stpncpy( copy, c_string, strnlen(c_string, BUFSIZ) + 1 );
 
@@ -134,6 +135,7 @@ rzyre_copy_required_string( VALUE string, const char *field_name )
 	if ( RB_TYPE_P(string, T_UNDEF) ) {
 		rb_raise( rb_eArgError, "missing required field :%s", field_name );
 	} else {
+		rzyre_log( "debug", "Required field %s is defined.", field_name );
 		return rzyre_copy_string( string );
 	}
 }
@@ -182,27 +184,37 @@ static VALUE
 rzyre_event_s_synthesize( int argc, VALUE *argv, VALUE klass )
 {
 	VALUE rval, event_type, peer_uuid, kwargs, event_class;
-	static VALUE kwvals[5];
+	VALUE kwvals[5] = { Qundef, Qundef, Qundef, Qundef, Qundef };
 	static ID keyword_ids[5];
 	zyre_event_t *ptr = NULL;
 
 	// Parse the arguments + keyword arguments
 	if ( !keyword_ids[0] ) {
-		CONST_ID( keyword_ids[0], "peer_name");
-		CONST_ID( keyword_ids[1], "headers");
-		CONST_ID( keyword_ids[2], "peer_addr");
-		CONST_ID( keyword_ids[3], "group");
-		CONST_ID( keyword_ids[4], "msg");
+		CONST_ID( keyword_ids[0], "peer_name" );
+		CONST_ID( keyword_ids[1], "headers" );
+		CONST_ID( keyword_ids[2], "peer_addr" );
+		CONST_ID( keyword_ids[3], "group" );
+		CONST_ID( keyword_ids[4], "msg" );
 	}
 
+	rzyre_log( "debug", "Scanning %d synthesize args.", argc );
 	rb_scan_args( argc, argv, "2:", &event_type, &peer_uuid, &kwargs );
 	if ( RTEST(kwargs) ) {
+		rzyre_log( "debug", "  scanning keyword args: %s", RSTRING_PTR(rb_inspect(kwargs)) );
 		rb_get_kwargs( kwargs, keyword_ids, 0, 5, kwvals );
 	}
 
 	// Translate the event type argument into the appropriate class and instantiate it
+	rzyre_log( "debug", "Creating an instance of a %s event.", RSTRING_PTR(rb_inspect(event_type )) );
 	event_class = rb_funcall( klass, rb_intern("type_by_name"), 1, event_type );
-	event_type = rb_funcall( event_class, rb_intern("type_name"), 0 );
+
+	if ( RTEST(event_class) ) {
+		event_type = rb_funcall( event_class, rb_intern("type_name"), 0 );
+	} else {
+		rb_raise( rb_eArgError, "don't know how to create %s events",
+			RSTRING_PTR(rb_inspect(event_type)) );
+	}
+
 	rval = rb_class_new_instance( 0, NULL, event_class );
 
 	// Set up the zyre_event memory for the object
@@ -213,6 +225,7 @@ rzyre_event_s_synthesize( int argc, VALUE *argv, VALUE klass )
 	ptr->peer_uuid = rzyre_copy_string( peer_uuid );
 
 	// Set the peer_name or default it if it wasn't specified
+	rzyre_log( "debug", "Starting type-specific setup." );
 	if ( !RB_TYPE_P(kwvals[0], T_UNDEF) ) {
 		ptr->peer_name = rzyre_copy_string( kwvals[0] );
 	} else {
@@ -234,26 +247,24 @@ rzyre_event_s_synthesize( int argc, VALUE *argv, VALUE klass )
 		ptr->group = rzyre_copy_required_string( kwvals[3], "group" );
 	}
 	else if ( streq(ptr->type, "WHISPER") ) {
-		const char *msg_str = rzyre_copy_required_string( kwvals[4], "msg" );
-		zmsg_t *msg = zmsg_new();
+		if ( RB_TYPE_P(kwvals[4], T_UNDEF) )
+			rb_raise( rb_eArgError, "missing required field :msg" );
 
-		zmsg_addstr( msg, msg_str );
-		ptr->msg = msg;
-		msg = NULL;
+		rzyre_log( "debug", "Making a WHISPER zmsg from the :msg value: %s",
+			RSTRING_PTR(rb_inspect(kwvals[4])) );
+		ptr->msg = rzyre_make_zmsg_from( kwvals[4] );
 	}
 	else if ( streq(ptr->type, "SHOUT") ) {
-		const char *msg_str = rzyre_copy_required_string( kwvals[4], "msg" );
-		zmsg_t *msg = zmsg_new();
+		if ( RB_TYPE_P(kwvals[4], T_UNDEF) )
+			rb_raise( rb_eArgError, "missing required field :msg" );
 
-		zmsg_addstr( msg, msg_str );
+		rzyre_log( "debug", "Making a SHOUT zmsg from the :msg value: %s",
+			RSTRING_PTR(rb_inspect(kwvals[4])) );
+		ptr->group = rzyre_copy_required_string( kwvals[3], "group" );
+		ptr->msg = rzyre_make_zmsg_from( kwvals[4] );
+	}
 
-		ptr->group = rzyre_copy_required_string( kwvals[3], "group" );
-		ptr->msg = msg;
-		msg = NULL;
-	}
-	else if ( streq(ptr->type, "LEADER") ) {
-		ptr->group = rzyre_copy_required_string( kwvals[3], "group" );
-	}
+	rzyre_log_obj( rval, "debug", "Synthesized a %s event.", ptr->type );
 
 	return rval;
 }

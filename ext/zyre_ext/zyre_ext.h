@@ -84,6 +84,11 @@ extern VALUE rzyre_cZyrePoller;
 #define IsZyreEvent( obj ) rb_obj_is_kind_of( (obj), rzyre_cZyreEvent )
 #define IsZyrePoller( obj ) rb_obj_is_kind_of( (obj), rzyre_cZyrePoller )
 
+/* --------------------------------------------------------------
+ * Utility functions
+ * -------------------------------------------------------------- */
+extern zmsg_t * rzyre_make_zmsg_from _(( VALUE ));
+
 
 /* -------------------------------------------------------
  * Initializer functions
