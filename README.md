@@ -21,7 +21,7 @@ reliable group messaging over local area networks, an implementation of [the Zer
 
 ### Examples
 
-Zyre is a P2P library which has two modes: pub/sub and direct messaging. To use it, you create a node, optionally join some groups (subscribing), and start it. Then you can send broadcast messages using `shout` and direct messages using `whisper`.
+Zyre is a P2P library which has two modes: pub/sub and direct messaging. To use it, you create a node, optionally join some groups (subscribing), and start it. Then you can send broadcast messages to all other nodes in a group, or direct messages to a particular node.
 
 This example join the Zyre network and dumps messages it sees in the 'global' group to stderr:
 
@@ -29,13 +29,51 @@ This example join the Zyre network and dumps messages it sees in the 'global' gr
     node.join( 'global' )
     node.start
     
-    while event = node.recv
+    node.each_event do |event|
       event.print
     end
 
-To send a direct message to a different node you need to know its `UUID`. There are number of ways to discover this... [Ed: list uuid discovery methods]
+To send a direct message to a different node you need to know its `UUID`. There are number of ways to discover this:
 
-You can publish a message with a single part:
+    # The UUIDs of all connected peers
+    node.peers
+    # The UUIDs of all the peers which have joined the `general` group
+    node.peers_by_group( 'general' )
+    # The UUID of the peer that sent the event
+    received_event.peer_uuid
+
+You read events from the network with the Zyre::Node#recv method, but it blocks until an event arrives:
+
+    event = node.recv
+
+You can also iterate over arriving events:
+
+    node.each do |event|
+        ...
+    end
+
+or use Zyre::Node#each as an Enumerator:
+
+    five_events = node.each_event.take( 5 )
+
+You can also wait for a certain type of event:
+
+    event = node.wait_for( :SHOUT )
+
+and time out if it doesn't arrive within a certain length of time:
+
+    event = node.wait_for( :ENTER, timeout: 2.0 ) or
+        raise "No one else on the network!"
+
+You can join a group with Zyre::Node#join:
+
+    node.join( 'alerts' )
+
+and you can detect other nodes joining one of your groups by looking for JOIN events (Zyre::Event::Join objects):
+
+    node.wait_for( :JOIN )
+
+You can publish a message to all nodes in a group with Zyre::Node#shout:
 
     node.shout( "group1", "This is a message." )
 
