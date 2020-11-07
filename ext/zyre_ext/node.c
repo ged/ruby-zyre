@@ -524,51 +524,124 @@ rzyre_node_recv( VALUE self )
 }
 
 
-/*
- * call-seq:
- *    node.whisper( peer_uuid, message )  -> int
- *
- * Send a +message+ to a single +peer+ specified as a UUID string.
- *
- */
+struct node_zmsg_call {
+	zyre_t *node;
+	zmsg_t *msg;
+	VALUE msg_parts;
+	char *peer_or_group;
+};
+typedef struct node_zmsg_call node_zmsg_call_t;
+
+
 static VALUE
-rzyre_node_whisper( VALUE self, VALUE peer_uuid, VALUE msg )
+rzyre_do_node_whisper( VALUE call )
 {
-	zyre_t *ptr = rzyre_get_node( self );
-	const char *peer_str = StringValueCStr( peer_uuid ),
-		*msg_str = StringValueCStr( msg );
+	node_zmsg_call_t *call_ptr = (node_zmsg_call_t *)call;
+	VALUE msg_part;
 	int rval;
 
-	assert( peer_str );
-	assert( msg_str );
+	for ( long i = 0 ; i < RARRAY_LEN(call_ptr->msg_parts) ; i++ ) {
+		msg_part = rb_ary_entry( call_ptr->msg_parts, i );
+		zmsg_addstr( call_ptr->msg, StringValueCStr(msg_part) );
+	}
 
-	rval = zyre_whispers( ptr, peer_str, "%s", msg_str );
+	rzyre_log( "debug", "zyre_whisper" );
+	rval = zyre_whisper( call_ptr->node, call_ptr->peer_or_group, &call_ptr->msg );
 
 	return rval ? Qtrue : Qfalse;
 }
 
 
+static VALUE
+rzyre_do_node_shout( VALUE call )
+{
+	node_zmsg_call_t *call_ptr = (node_zmsg_call_t *)call;
+	VALUE msg_part;
+	int rval;
+
+	for ( long i = 0 ; i < RARRAY_LEN(call_ptr->msg_parts) ; i++ ) {
+		msg_part = rb_ary_entry( call_ptr->msg_parts, i );
+		zmsg_addstr( call_ptr->msg, StringValueCStr(msg_part) );
+	}
+
+	rzyre_log( "debug", "zyre_shout" );
+	rval = zyre_shout( call_ptr->node, call_ptr->peer_or_group, &call_ptr->msg );
+
+	return rval ? Qtrue : Qfalse;
+}
+
+
+/* Ensure method for Ruby methods that build zmsgs to ensure they don't leak. */
+static VALUE
+rzyre_free_zmsg( VALUE call )
+{
+	node_zmsg_call_t *call_ptr = (node_zmsg_call_t *)call;
+
+	rzyre_log( "debug", "In the zmsg free ensure." );
+	if ( call_ptr->msg ) {
+		rzyre_log( "debug", "  not already freed; zmsg_destroy()ing it" );
+		zmsg_destroy( &call_ptr->msg );
+	} else {
+		rzyre_log( "debug", "  already freed." );
+	}
+
+	return Qnil;
+}
+
+
 /*
  * call-seq:
- *    node.shout( group, message )   -> int
+ *    node.whisper( peer_uuid, *messages )  -> int
+ *
+ * Send a +message+ to a single +peer+ specified as a UUID string.
+ *
+ */
+static VALUE
+rzyre_node_whisper( int argc, VALUE *argv, VALUE self )
+{
+	node_zmsg_call_t call = {
+		.node = rzyre_get_node( self ),
+		.msg = NULL,
+		.peer_or_group = NULL,
+		.msg_parts = Qnil
+	};
+	VALUE peer_uuid, msg_parts;
+
+	rb_scan_args( argc, argv, "1*", &peer_uuid, &msg_parts );
+
+	call.peer_or_group = StringValueCStr( peer_uuid );
+	call.msg_parts = msg_parts;
+	call.msg = zmsg_new();
+
+	return rb_ensure( rzyre_do_node_whisper, (VALUE)&call, rzyre_free_zmsg, (VALUE)&call );
+}
+
+
+/*
+ * call-seq:
+ *    node.shout( group, *messages )   -> int
  *
  * Send +message+ to a named +group+.
  *
  */
 static VALUE
-rzyre_node_shout( VALUE self, VALUE group, VALUE msg )
+rzyre_node_shout( int argc, VALUE *argv, VALUE self )
 {
-	zyre_t *ptr = rzyre_get_node( self );
-	const char *group_str = StringValueCStr( group ),
-		*msg_str = StringValueCStr( msg );
-	int rval;
+	node_zmsg_call_t call = {
+		.node = rzyre_get_node( self ),
+		.msg = NULL,
+		.peer_or_group = NULL,
+		.msg_parts = Qnil
+	};
+	VALUE group_name, msg_parts;
 
-	assert( group_str );
-	assert( msg_str );
+	rb_scan_args( argc, argv, "1*", &group_name, &msg_parts );
 
-	rval = zyre_shouts( ptr, group_str, "%s", msg_str );
+	call.peer_or_group = StringValueCStr( group_name );
+	call.msg_parts = msg_parts;
+	call.msg = zmsg_new();
 
-	return rval ? Qtrue : Qfalse;
+	return rb_ensure( rzyre_do_node_shout, (VALUE)&call, rzyre_free_zmsg, (VALUE)&call );
 }
 
 
@@ -819,8 +892,8 @@ rzyre_init_node( void )
 
 	rb_define_method( rzyre_cZyreNode, "recv", rzyre_node_recv, 0 );
 
-	rb_define_method( rzyre_cZyreNode, "whisper", rzyre_node_whisper, 2 );
-	rb_define_method( rzyre_cZyreNode, "shout", rzyre_node_shout, 2 );
+	rb_define_method( rzyre_cZyreNode, "whisper", rzyre_node_whisper, -1 );
+	rb_define_method( rzyre_cZyreNode, "shout", rzyre_node_shout, -1 );
 
 	rb_define_method( rzyre_cZyreNode, "peers", rzyre_node_peers, 0 );
 	rb_define_method( rzyre_cZyreNode, "peers_by_group", rzyre_node_peers_by_group, 1 );

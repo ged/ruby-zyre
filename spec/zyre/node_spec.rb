@@ -162,13 +162,30 @@ RSpec.describe( Zyre::Node ) do
 		node1.wait_for( :ENTER, peer_uuid: node2.uuid )
 		node1.whisper( node2.uuid, TEST_WHISPER )
 
-		ev = node2.recv
-		expect( ev.type ).to eq( :ENTER )
+		ev = node2.wait_for( :WHISPER )
+		expect( ev ).to be_a( Zyre::Event::Whisper )
+		expect( ev ).to_not be_multipart
+		msg = ev.msg
+		expect( msg.encoding ).to eq( Encoding::ASCII_8BIT )
+		msg = msg.dup.force_encoding( 'utf-8' )
+		expect( msg ).to eq( TEST_WHISPER )
+		expect( ev.multipart_msg ).to eq( [TEST_WHISPER.b] )
+	end
 
-		ev = node2.recv
-		expect( ev.type ).to eq( :WHISPER )
-		expect( ev.msg.encoding ).to eq( Encoding::UTF_8 )
-		expect( ev.msg ).to eq( TEST_WHISPER )
+
+	it "can whisper a multipart message to another node" do
+		node1 = started_node()
+		node2 = started_node()
+
+		node1.wait_for( :ENTER, peer_uuid: node2.uuid )
+		node1.whisper( node2.uuid, 'poetry.snippet', TEST_WHISPER )
+
+		ev = node2.wait_for( :WHISPER, peer_uuid: node1.uuid )
+		expect( ev ).to be_a( Zyre::Event::Whisper )
+		expect( ev ).to be_multipart
+		expect( ev.msg.encoding ).to eq( Encoding::ASCII_8BIT )
+		expect( ev.msg ).to eq( 'poetry.snippet' )
+		expect( ev.multipart_msg ).to eq( ['poetry.snippet', TEST_WHISPER] )
 	end
 
 
@@ -190,8 +207,42 @@ RSpec.describe( Zyre::Node ) do
 
 		ev = node2.recv
 		expect( ev ).to be_a( Zyre::Event::Shout )
-		expect( ev.msg.encoding ).to eq( Encoding::UTF_8 )
-		expect( ev.msg ).to eq( TEST_SHOUT )
+		expect( ev ).to_not be_multipart
+		expect( ev.msg.encoding ).to eq( Encoding::ASCII_8BIT )
+		expect( ev.msg ).to eq( TEST_SHOUT.b )
+		expect( ev.multipart_msg ).to eq( [TEST_SHOUT.b] )
+	end
+
+
+	it "can shout a multipart message to a group of nodes" do
+		node1 = started_node()
+		node2 = started_node()
+		node3 = started_node()
+
+		node1.join( 'ROOFTOP' )
+		node2.join( 'ROOFTOP' )
+		node3.join( 'ROOFTOP' )
+
+		2.times do
+			node1.wait_for( :JOIN, group: 'ROOFTOP' )
+		end
+		node1.shout( 'ROOFTOP', "random.poetry", TEST_SHOUT )
+
+		ev = node2.wait_for( :SHOUT, group: 'ROOFTOP' )
+		expect( ev ).to be_a( Zyre::Event::Shout )
+		expect( ev ).to be_multipart
+		expect( ev.msg ).to eq( 'random.poetry'.b )
+		expect( ev.multipart_msg ).to eq( ['random.poetry'.b, TEST_SHOUT.b] )
+	end
+
+
+	it "handles unstringifiable messages gracefully" do
+		node1 = started_node()
+		node1.join( 'ROOFTOP' )
+
+		expect {
+			node1.shout( 'ROOFTOP', nil )
+		}.to raise_error( TypeError, /nil/i )
 	end
 
 

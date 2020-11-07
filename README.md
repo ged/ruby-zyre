@@ -21,15 +21,42 @@ reliable group messaging over local area networks, an implementation of [the Zer
 
 ### Examples
 
-    # Join the Zyre network on the network associated with the given interface
-    # and dump events from the 'global' group to stderr.
+Zyre is a P2P library which has two modes: pub/sub and direct messaging. To use it, you create a node, optionally join some groups (subscribing), and start it. Then you can send broadcast messages using `shout` and direct messages using `whisper`.
+
+This example join the Zyre network and dumps messages it sees in the 'global' group to stderr:
+
     node = Zyre::Node.new
-    node.interface = 'igb0'
+    node.join( 'global' )
     node.start
     
     while event = node.recv
       event.print
     end
+
+To send a direct message to a different node you need to know its `UUID`. There are number of ways to discover this... [Ed: list uuid discovery methods]
+
+You can publish a message with a single part:
+
+    node.shout( "group1", "This is a message." )
+
+and read it:
+
+    event = other_node.recv
+    event.is_multipart?  # => false
+    event.msg            # => "This is a message."
+    event.multipart_msg  # => ["This is a message."]
+
+
+Or publish a message with multiple parts:
+
+    node.shout( "group1", 'message.type', "This is a message." )
+
+and read it:
+
+    event = other_node.recv
+    event.is_multipart?  # => true
+    event.msg            # => "message.type"
+    event.multipart_msg  # => ["message.type", "This is a message."]
 
 
 ### To-Do

@@ -13,6 +13,7 @@
 #include <ruby.h>
 #include <ruby/intern.h>
 #include <ruby/thread.h>
+#include <ruby/encoding.h>
 
 #include "zyre.h"
 #include "czmq.h"

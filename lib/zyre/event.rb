@@ -60,6 +60,14 @@ class Zyre::Event
 	end
 
 
+	### Returns +true+ if the receiving event has a multipart message.
+	def multipart?
+		size = self.msg_size
+		return size && size > 1
+	end
+	alias_method :is_multipart?, :multipart?
+
+
 	### Return a string describing this event, suitable for debugging.
 	def inspect
 		details = self.inspect_details

@@ -31,7 +31,7 @@ RSpec.describe 'Observability::Instrumentation::Zyre', :observability do
 		events = Observability.observer.sender.find_events( 'zyre.node.whisper' )
 		expect( events.length ).to eq( 1 )
 		expect( events.first[:peer_uuid] ).to eq( node2.uuid )
-		expect( events.first[:message] ).to eq( 'a peer-to-peer message' )
+		expect( events.first[:messages] ).to eq( ['a peer-to-peer message'] )
 
 	end
 
@@ -49,7 +49,7 @@ RSpec.describe 'Observability::Instrumentation::Zyre', :observability do
 		events = Observability.observer.sender.find_events( 'zyre.node.shout' )
 		expect( events.length ).to eq( 1 )
 		expect( events.first[:group] ).to eq( 'observer-testing' )
-		expect( events.first[:message] ).to eq( 'a peer-to-peer message' )
+		expect( events.first[:messages] ).to eq( ['a peer-to-peer message'] )
 	end
 
 end

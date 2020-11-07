@@ -397,9 +397,32 @@ rzyre_event_group( VALUE self ) {
 
 /*
  * call-seq:
- *    event.event_msg
+ *    event.msg_size   -> int
  *
- * Returns the incoming message payload.
+ * Return the number of frames present in the event's message (if it has one). Returns
+ * nil if there is no message.
+ *
+ */
+static VALUE
+rzyre_event_msg_size( VALUE self )
+{
+	zyre_event_t *ptr = rzyre_get_event( self );
+	zmsg_t *msg = zyre_event_msg( ptr );
+	VALUE rval = Qnil;
+
+	if ( msg ) {
+		rval = INT2FIX( zmsg_size(msg) );
+	}
+
+	return rval;
+}
+
+
+/*
+ * call-seq:
+ *    event.msg
+ *
+ * Returns the data from the first frame of the message from the receiver.
  */
 static VALUE
 rzyre_event_msg( VALUE self ) {
@@ -407,15 +430,45 @@ rzyre_event_msg( VALUE self ) {
 	zmsg_t *msg = zyre_event_msg( ptr );
 	VALUE rval = Qnil;
 
-	// :TODO: Support multipart messages when Zyre does.
 	if ( msg ) {
 		zframe_t *frame = zmsg_first( msg );
 		char *str = zframe_strdup( frame );
 
-		rval = rb_utf8_str_new( str, zframe_size(frame) );
+		rval = rb_enc_str_new( str, zframe_size(frame), rb_ascii8bit_encoding() );
 		rb_obj_freeze( rval );
 
 		free( str );
+	}
+
+	return rval;
+}
+
+
+/*
+ * call-seq:
+ *    event.multipart_msg
+ *
+ * Returns the data from every frame of the message from the receiver.
+ */
+static VALUE
+rzyre_event_multipart_msg( VALUE self ) {
+	zyre_event_t *ptr = rzyre_get_event( self );
+	zmsg_t *msg = zyre_event_msg( ptr );
+	VALUE rval = rb_ary_new();
+
+	if ( msg ) {
+		zframe_t *frame = zmsg_first( msg );
+
+		while ( frame ) {
+			char *str = zframe_strdup( frame );
+			VALUE data = rb_enc_str_new( str, zframe_size(frame), rb_ascii8bit_encoding() );
+
+			rb_obj_freeze( data );
+			rb_ary_push( rval, data );
+
+			free( str );
+			frame = zmsg_next( msg );
+		}
 	}
 
 	return rval;
@@ -471,7 +524,9 @@ rzyre_init_event( void ) {
 	rb_define_method( rzyre_cZyreEvent, "headers", rzyre_event_headers, 0 );
 	rb_define_method( rzyre_cZyreEvent, "header", rzyre_event_header, 1 );
 	rb_define_method( rzyre_cZyreEvent, "group", rzyre_event_group, 0 );
+	rb_define_method( rzyre_cZyreEvent, "msg_size", rzyre_event_msg_size, 0 );
 	rb_define_method( rzyre_cZyreEvent, "msg", rzyre_event_msg, 0 );
+	rb_define_method( rzyre_cZyreEvent, "multipart_msg", rzyre_event_multipart_msg, 0 );
 	rb_define_method( rzyre_cZyreEvent, "print", rzyre_event_print, 0 );
 
 	rb_require( "zyre/event" );

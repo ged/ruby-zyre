@@ -38,14 +38,14 @@ module Observability::Instrumentation::Zyre
 	###############
 
 	### Observer callback for the #whisper method.
-	def observe_whisper( peer_uuid, msg )
-		Observability.observer.add( peer_uuid: peer_uuid, message: msg )
+	def observe_whisper( peer_uuid, *msgs )
+		Observability.observer.add( peer_uuid: peer_uuid, messages: msgs )
 	end
 
 
 	### Observer callback for the #shout method.
-	def observe_shout( group, msg )
-		Observability.observer.add( group: group, message: msg )
+	def observe_shout( group, *msgs )
+		Observability.observer.add( group: group, messages: msgs )
 	end
 
 end # module Observability::Instrumentation::Zyre
