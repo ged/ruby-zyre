@@ -181,6 +181,20 @@ RSpec.describe( Zyre::Testing ) do
 		end
 
 
+		it "can override SHOUT event message and group using positional parameters" do
+			event = factory.shout( 'control', 'data1', 'data2' )
+
+			expect( event ).to be_a( Zyre::Event::Shout )
+			expect( event.peer_uuid ).to eq( factory.peer_uuid )
+			expect( event.peer_name ).to eq( 'lancer-6' )
+			expect( event.headers ).to be_empty
+			expect( event.msg ).to eq( 'data1' )
+			expect( event ).to be_multipart
+			expect( event.multipart_msg ).to eq( ['data1'.b, 'data2'.b] )
+			expect( event.group ).to eq( 'control' )
+		end
+
+
 		it "can create a valid WHISPER event" do
 			event = factory.whisper
 
@@ -210,6 +224,20 @@ RSpec.describe( Zyre::Testing ) do
 			expect( event.peer_name ).to eq( 'lancer-6' )
 			expect( event.headers ).to be_empty
 			expect( event.msg ).to eq( 'stop' )
+			expect( event.group ).to be_nil
+		end
+
+
+		it "can override WHISPER event message using positional parameters" do
+			event = factory.whisper( 'ignored', 'data1', 'data2' )
+
+			expect( event ).to be_a( Zyre::Event::Whisper )
+			expect( event.peer_uuid ).to eq( factory.peer_uuid )
+			expect( event.peer_name ).to eq( 'lancer-6' )
+			expect( event.headers ).to be_empty
+			expect( event.msg ).to eq( 'data1' )
+			expect( event ).to be_multipart
+			expect( event.multipart_msg ).to eq( ['data1', 'data2'] )
 			expect( event.group ).to be_nil
 		end
 

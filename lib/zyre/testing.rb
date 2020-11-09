@@ -154,8 +154,12 @@ module Zyre::Testing
 
 
 		### Generate a SHOUT event.
-		def shout( **overrides )
+		def shout( group=nil, *msg, **overrides )
 			uuid = overrides.delete( :peer_uuid ) || self.peer_uuid
+
+			overrides[:group] = group if group
+			overrides[:msg] = msg if !msg.empty?
+
 			config = {
 				peer_name: self.peer_name,
 				group: self.group,
@@ -166,9 +170,14 @@ module Zyre::Testing
 		end
 
 
-		### Generate a WHISPER event.
-		def whisper( **overrides )
+		### Generate a WHISPER event. The first positional argument, which would
+		### normally be the UUID of the peer to WHISPER to is ignored, since the
+		### generated event's +peer_uuid+ is the sending node's not the receiving one's.
+		def whisper( _ignored=nil, *msg, **overrides )
 			uuid = overrides.delete( :peer_uuid ) || self.peer_uuid
+
+			overrides[:msg] = msg if !msg.empty?
+
 			config = {
 				peer_name: self.peer_name,
 				msg: self.msg
