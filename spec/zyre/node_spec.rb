@@ -287,6 +287,22 @@ RSpec.describe( Zyre::Node ) do
 	end
 
 
+	it "knows what the headers of its peers are" do
+		node1 = started_node()
+		node2 = started_node() do |node|
+			node.headers = {
+				protocol_version: 2,
+				content_type: 'application/javascript',
+				start_time: Time.now.to_f
+			}
+		end
+
+		node1.wait_for( :enter, peer_uuid: node2.uuid )
+
+		expect( node1.peer_header_value(node2.uuid, 'Protocol-version') ).to eq( '2' )
+	end
+
+
 	it "has a blocking iterator" do
 		node = described_class.new
 
