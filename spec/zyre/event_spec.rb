@@ -136,6 +136,19 @@ RSpec.describe( Zyre::Event ) do
 		end
 
 
+		it "can generate a SHOUT event with binary data in its msg" do
+			data = "\xBF\x8D\x00\x9D\xDDg\x03_\xF2Nr\x01\xF0I8Au\x95\xC6L\xD37".b +
+				"\xFFt\xC7\xE1\xC0<l\x17\xA2N\xE3".b
+
+			result = described_class.synthesize( :SHOUT, peer_uuid, group: 'stream', msg: data )
+
+			expect( result ).to be_a( described_class::Shout )
+			expect( result.peer_uuid ).to eq( peer_uuid )
+			expect( result.group ).to eq( 'stream' )
+			expect( result.msg ).to eq( data )
+		end
+
+
 		it "raises when creating a WHISPER with no msg" do
 			expect {
 				described_class.synthesize( :WHISPER, peer_uuid )

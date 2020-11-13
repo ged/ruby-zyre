@@ -2,6 +2,7 @@
 
 require_relative '../spec_helper'
 
+require 'securerandom'
 require 'zyre/node'
 
 
@@ -16,6 +17,13 @@ RSpec.describe( Zyre::Node ) do
 	I too am not a bit tamed—I too am untranslatable;
 	I sound my barbaric yawp over the roofs of the world.
 	END_SHOUT
+
+	TEST_BINARY_STRING_PARTS = [
+		SecureRandom.bytes( 128 ),
+		"\x00".b,
+		SecureRandom.bytes( 128 )
+	]
+	TEST_BINARY_STRING = TEST_BINARY_STRING_PARTS.join( '' )
 
 
 	it "can be created anonymously" do
@@ -233,6 +241,60 @@ RSpec.describe( Zyre::Node ) do
 		expect( ev ).to be_multipart
 		expect( ev.msg ).to eq( 'random.poetry'.b )
 		expect( ev.multipart_msg ).to eq( ['random.poetry'.b, TEST_SHOUT.b] )
+	end
+
+
+	it "can shout a binary message to a group of nodes" do
+		node1 = started_node()
+		node2 = started_node()
+		node3 = started_node()
+
+		node1.join( 'stream' )
+		node2.join( 'stream' )
+		node3.join( 'stream' )
+
+		2.times do
+			node1.wait_for( :JOIN, group: 'stream' )
+		end
+		node1.shout( 'stream', TEST_BINARY_STRING )
+
+		ev = node2.wait_for( :SHOUT, group: 'stream' )
+		expect( ev ).to be_a( Zyre::Event::Shout )
+		expect( ev ).to_not be_multipart
+		expect( ev.msg ).to eq( TEST_BINARY_STRING )
+
+		ev = node3.wait_for( :SHOUT, group: 'stream' )
+		expect( ev ).to be_a( Zyre::Event::Shout )
+		expect( ev ).to_not be_multipart
+		expect( ev.msg ).to eq( TEST_BINARY_STRING )
+	end
+
+
+	it "can shout a multipart binary message to a group of nodes" do
+		node1 = started_node()
+		node2 = started_node()
+		node3 = started_node()
+
+		node1.join( 'stream' )
+		node2.join( 'stream' )
+		node3.join( 'stream' )
+
+		2.times do
+			node1.wait_for( :JOIN, group: 'stream' )
+		end
+		node1.shout( 'stream', *TEST_BINARY_STRING_PARTS )
+
+		ev = node2.wait_for( :SHOUT, group: 'stream' )
+		expect( ev ).to be_a( Zyre::Event::Shout )
+		expect( ev ).to be_multipart
+		expect( ev.msg ).to eq( TEST_BINARY_STRING_PARTS[0] )
+		expect( ev.multipart_msg ).to eq( TEST_BINARY_STRING_PARTS )
+
+		ev = node3.wait_for( :SHOUT, group: 'stream' )
+		expect( ev ).to be_a( Zyre::Event::Shout )
+		expect( ev ).to be_multipart
+		expect( ev.msg ).to eq( TEST_BINARY_STRING_PARTS[0] )
+		expect( ev.multipart_msg ).to eq( TEST_BINARY_STRING_PARTS )
 	end
 
 

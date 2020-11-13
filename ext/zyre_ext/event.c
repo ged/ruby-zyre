@@ -443,12 +443,10 @@ rzyre_event_msg( VALUE self ) {
 
 	if ( msg ) {
 		zframe_t *frame = zmsg_first( msg );
-		char *str = zframe_strdup( frame );
+		byte *data = zframe_data( frame );
 
-		rval = rb_enc_str_new( str, zframe_size(frame), rb_ascii8bit_encoding() );
+		rval = rb_enc_str_new( (const char *)data, zframe_size(frame), rb_ascii8bit_encoding() );
 		rb_obj_freeze( rval );
-
-		free( str );
 	}
 
 	return rval;
