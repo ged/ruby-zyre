@@ -93,7 +93,7 @@ rzyre_add_frames_to_zmsg( VALUE call )
 	for ( long i = 0 ; i < RARRAY_LEN(call_ptr->msg_parts) ; i++ ) {
 		msg_part = rb_ary_entry(call_ptr->msg_parts, i);
 		msg_str = StringValue( msg_part );
-		frame = zframe_new( RSTRING_PTR(msg_part), RSTRING_LEN(msg_part) );
+		frame = zframe_new( RSTRING_PTR(msg_str), RSTRING_LEN(msg_str) );
 		zmsg_append( call_ptr->msg, &frame );
 	}
 
