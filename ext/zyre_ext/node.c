@@ -8,11 +8,17 @@
  */
 
 #include "zyre_ext.h"
+#include "extconf.h"
 
 
 VALUE rzyre_cZyreNode;
 
+// Null key; means curve isn't available or the secret side of a public cert.
+#define FORTY_ZEROES "0000000000000000000000000000000000000000"
+
+
 static void rzyre_node_free( void *ptr );
+
 
 static const rb_data_type_t rzyre_node_t = {
 	"Zyre::Node",
@@ -771,6 +777,241 @@ rzyre_node_print( VALUE self )
 }
 
 
+/* --------------------------------------------------------------
+ * Draft API
+ * -------------------------------------------------------------- */
+
+
+#define RAISE_NO_DRAFT_APIS()\
+	rb_raise( rb_eNotImpError, "Zyre was not built with Draft APIs!" ); \
+	return Qnil;
+
+/*
+ * call-seq:
+ *   node.beacon_peer_port = 16668
+ *
+ * Set the TCP port bound by the ROUTER peer-to-peer socket (beacon mode).
+ * Defaults to * (the port is randomly assigned by the system).
+ * This call overrides this, to bypass some firewall issues when ports are
+ * random. Has no effect after #start.
+ *
+ * Note: this is part of the ZRE 43 Draft API, and may be changed or
+ * removed at any time.
+ */
+static VALUE
+rzyre_node_beacon_peer_port_eq( VALUE self, VALUE port_number )
+{
+#ifdef ZYRE_BUILD_DRAFT_API
+	zyre_t *ptr = rzyre_get_node( self );
+
+	zyre_set_beacon_peer_port( ptr, FIX2INT(port_number) );
+
+	return port_number;
+#else
+	RAISE_NO_DRAFT_APIS();
+#endif // ZYRE_BUILD_DRAFT_API
+}
+
+
+/*
+ * call-seq:
+ *   node.set_contest_in_group( group )
+ *
+ * This options enables a peer to actively contest for leadership in the
+ * given +group+. If this option is not set the peer will still participate in
+ * elections but never gets elected. This ensures that a consent for a leader
+ * is reached within a group even though not every peer is contesting for
+ * leadership.
+ *
+ * Note: this is part of the ZRE 43 Draft API, and may be changed or
+ * removed at any time.
+ */
+static VALUE
+rzyre_node_set_contest_in_group( VALUE self, VALUE group_name )
+{
+#ifdef ZYRE_BUILD_DRAFT_API
+	zyre_t *ptr = rzyre_get_node( self );
+	const char *group_str = StringValueCStr( group_name );
+
+	zyre_set_contest_in_group( ptr, group_str );
+
+	return group_name;
+#else
+	RAISE_NO_DRAFT_APIS();
+#endif // ZYRE_BUILD_DRAFT_API
+}
+
+
+/*
+ * call-seq:
+ *   node.advertised_endpoint = endpoint
+ *
+ * Set an alternative +endpoint+ value when using GOSSIP ONLY. This is useful
+ * if you're advertising an endpoint behind a NAT.
+ *
+ * Note: this is part of the ZRE 43 Draft API, and may be changed or
+ * removed at any time.
+ */
+static VALUE
+rzyre_node_advertised_endpoint_eq( VALUE self, VALUE endpoint )
+{
+#ifdef ZYRE_BUILD_DRAFT_API
+	zyre_t *ptr = rzyre_get_node( self );
+	const char *endpoint_str = StringValueCStr( endpoint );
+
+	zyre_set_advertised_endpoint( ptr, endpoint_str );
+
+	return endpoint;
+#else
+	RAISE_NO_DRAFT_APIS();
+#endif // ZYRE_BUILD_DRAFT_API
+}
+
+
+/*
+ * call-seq:
+ *   node.zcert = zcert
+ *
+ * Apply a +zcert+ to a Zyre node. See Zyre::Cert#apply and
+ * Authentication[rdoc-ref:Authentication].
+ *
+ * Note: this is part of the ZRE 43 Draft API, and may be changed or
+ * removed at any time.
+ */
+static VALUE
+rzyre_node_zcert_eq( VALUE self, VALUE cert )
+{
+#ifdef ZYRE_BUILD_DRAFT_API
+	zyre_t *ptr = rzyre_get_node( self );
+	zcert_t *zcert = rzyre_get_cert( cert );
+
+	if ( zcert_secret_txt(zcert) == FORTY_ZEROES ) {
+		rb_raise( rb_eArgError,
+			"can't use this cert for authentication (no curve or missing secret key)" );
+	}
+
+	zyre_set_zcert( ptr, zcert );
+
+	return Qtrue;
+#else
+	RAISE_NO_DRAFT_APIS();
+#endif // ZYRE_BUILD_DRAFT_API
+}
+
+
+/*
+ * call-seq:
+ *   node.zap_domain = domain
+ *
+ * Specify the ZAP domain (for use with CURVE authentication). See
+ * Authentication[rdoc-ref:Authentication].
+ *
+ * Note: this is part of the ZRE 43 Draft API, and may be changed or
+ * removed at any time.
+ */
+static VALUE
+rzyre_node_zap_domain_eq( VALUE self, VALUE domain )
+{
+#ifdef ZYRE_BUILD_DRAFT_API
+	zyre_t *ptr = rzyre_get_node( self );
+	const char *domain_str = StringValueCStr( domain );
+
+	zyre_set_zap_domain( ptr, domain_str );
+
+	return Qtrue;
+#else
+	RAISE_NO_DRAFT_APIS();
+#endif // ZYRE_BUILD_DRAFT_API
+}
+
+
+/*
+ * call-seq:
+ *   node.gossip_connect_curve( public_key, endpoint )
+ *
+ * Connect to the gossip discovery endpoint with CURVE enabled. The +public_key+ is the
+ * Z85-armored public key of the connecting node's cert/
+ *
+ * Note: this is part of the ZRE 43 Draft API, and may be changed or
+ * removed at any time.
+ */
+static VALUE
+rzyre_node_gossip_connect_curve( VALUE self, VALUE public_key, VALUE endpoint )
+{
+#ifdef ZYRE_BUILD_DRAFT_API
+	zyre_t *ptr = rzyre_get_node( self );
+	const char *endpoint_str = StringValueCStr( endpoint );
+	const char *key = StringValueCStr( public_key );
+
+	assert( endpoint_str );
+	assert( key );
+
+	rzyre_log_obj( self, "debug", "Connecting to gossip endpoint %s (CURVE enabled).", endpoint_str );
+	zyre_gossip_connect_curve( ptr, key, "%s", endpoint_str );
+
+	return Qtrue;
+#else
+	RAISE_NO_DRAFT_APIS();
+#endif // ZYRE_BUILD_DRAFT_API
+}
+
+
+/*
+ * call-seq:
+ *   node.gossip_unpublish( node_uuid )
+ *
+ * Unpublish a GOSSIP node from local list, useful in removing nodes from list
+ * when they EXIT.
+ *
+ * Note: this is part of the ZRE 43 Draft API, and may be changed or
+ * removed at any time.
+ */
+static VALUE
+rzyre_node_gossip_unpublish( VALUE self, VALUE node_uuid )
+{
+#ifdef ZYRE_BUILD_DRAFT_API
+	zyre_t *ptr = rzyre_get_node( self );
+	const char *node = StringValueCStr( node_uuid );
+
+	zyre_gossip_unpublish( ptr, node );
+
+	return Qtrue;
+#else
+	RAISE_NO_DRAFT_APIS();
+#endif // ZYRE_BUILD_DRAFT_API
+}
+
+
+/*
+ * call-seq:
+ *   node.require_peer( node_uuid, router_endpoint, public_key )
+ *
+ * Explicitly connect to a peer with the given +node_uuid+ via the specified
+ * +router_endpoint+, using the given +public_key+ to authenticate.
+ *
+ * Note: this is part of the ZRE 43 Draft API, and may be changed or
+ * removed at any time.
+ */
+static VALUE
+rzyre_node_require_peer( VALUE self, VALUE uuid, VALUE endpoint, VALUE public_key )
+{
+#ifdef ZYRE_BUILD_DRAFT_API
+	zyre_t *ptr = rzyre_get_node( self );
+	const char *uuid_str = StringValueCStr( uuid ),
+		*endpoint_str = StringValueCStr( endpoint ),
+		*key_str = StringValueCStr( public_key );
+	int rval;
+
+	rval = zyre_require_peer( ptr, uuid_str, endpoint_str, key_str );
+
+	return rval == 0 ? Qtrue : Qfalse;
+#else
+	RAISE_NO_DRAFT_APIS();
+#endif // ZYRE_BUILD_DRAFT_API
+}
+
+
+
 /*
  * Node class init
  */
@@ -838,18 +1079,14 @@ rzyre_init_node( void )
 	rb_define_method( rzyre_cZyreNode, "verbose!", rzyre_node_verbose_bang, 0 );
 	rb_define_method( rzyre_cZyreNode, "print", rzyre_node_print, 0 );
 
-#ifdef ZYRE_BUILD_DRAFT_API
-
-	rb_define_method( rzyre_cZyreNode, "set_beacon_peer_port", rzyre_node_set_beacon_peer_port, -1 );
-	rb_define_method( rzyre_cZyreNode, "set_contest_in_group", rzyre_node_set_contest_in_group, -1 );
-	rb_define_method( rzyre_cZyreNode, "set_advertised_endpoint", rzyre_node_set_advertised_endpoint, -1 );
-	rb_define_method( rzyre_cZyreNode, "set_zcert", rzyre_node_set_zcert, -1 );
-	rb_define_method( rzyre_cZyreNode, "set_zap_domain", rzyre_node_set_zap_domain, -1 );
-	rb_define_method( rzyre_cZyreNode, "gossip_connect_curve", rzyre_node_gossip_connect_curve, -1 );
-	rb_define_method( rzyre_cZyreNode, "gossip_unpublish", rzyre_node_gossip_unpublish, -1 );
-	rb_define_method( rzyre_cZyreNode, "require_peer", rzyre_node_require_peer, -1 );
-
-#endif // ZYRE_BUILD_DRAFT_API
+	rb_define_method( rzyre_cZyreNode, "beacon_peer_port=", rzyre_node_beacon_peer_port_eq, 1 );
+	rb_define_method( rzyre_cZyreNode, "set_contest_in_group", rzyre_node_set_contest_in_group, 1 );
+	rb_define_method( rzyre_cZyreNode, "advertised_endpoint=", rzyre_node_advertised_endpoint_eq, 1 );
+	rb_define_method( rzyre_cZyreNode, "zcert=", rzyre_node_zcert_eq, 1 );
+	rb_define_method( rzyre_cZyreNode, "zap_domain=", rzyre_node_zap_domain_eq, 1 );
+	rb_define_method( rzyre_cZyreNode, "gossip_connect_curve", rzyre_node_gossip_connect_curve, 2 );
+	rb_define_method( rzyre_cZyreNode, "gossip_unpublish", rzyre_node_gossip_unpublish, 1 );
+	rb_define_method( rzyre_cZyreNode, "require_peer", rzyre_node_require_peer, 3 );
 
 	rb_require( "zyre/node" );
 }

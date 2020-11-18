@@ -50,4 +50,16 @@ module Zyre
 			transform_values {|v| v.to_s.encode('us-ascii') }
 	end
 
+
+	### Returns +true+ if the underlying Czmq library was built with draft APIs.
+	def self::has_draft_czmq_apis?
+		return Zyre::BUILT_WITH_DRAFT_CZMQ_API ? true : false
+	end
+
+
+	### Returns +true+ if the underlying Zyre library was built with draft APIs.
+	def self::has_draft_apis?
+		return Zyre::BUILT_WITH_DRAFT_API ? true : false
+	end
+
 end # module Zyre

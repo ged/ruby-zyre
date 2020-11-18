@@ -55,6 +55,10 @@ RSpec.configure do |config|
 		Zyre::Testing.check_fdmax
 	end
 
+	config.filter_run_excluding( :draft_api ) unless Zyre.has_draft_apis?
+	config.filter_run_excluding( :czmq_draft_api ) unless Zyre.has_draft_czmq_apis?
+	config.filter_run_excluding( :no_czmq_draft_api ) if Zyre.has_draft_czmq_apis?
+
 	config.include( Zyre::Testing )
 	config.include( Loggability::SpecHelpers )
 end

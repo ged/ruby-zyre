@@ -10,14 +10,22 @@
 #ifndef ZYRE_EXT_H_90322ABD
 #define ZYRE_EXT_H_90322ABD
 
+#include "extconf.h"
+
 #include <ruby.h>
 #include <ruby/intern.h>
 #include <ruby/thread.h>
 #include <ruby/encoding.h>
 
+#ifdef HAVE_ZCERT_UNSET_META
+#	define CZMQ_BUILD_DRAFT_API 1
+#endif
+#ifdef HAVE_ZYRE_SET_BEACON_PEER_PORT
+#	define ZYRE_BUILD_DRAFT_API 1
+#endif
+
 #include "zyre.h"
 #include "czmq.h"
-#include "extconf.h"
 
 #ifndef TRUE
 # define TRUE    1
@@ -74,6 +82,7 @@ extern VALUE rzyre_mZyre;
 extern VALUE rzyre_cZyreNode;
 extern VALUE rzyre_cZyreEvent;
 extern VALUE rzyre_cZyrePoller;
+extern VALUE rzyre_cZyreCert;
 
 
 /* --------------------------------------------------------------
@@ -83,6 +92,7 @@ extern VALUE rzyre_cZyrePoller;
 #define IsZyreNode( obj ) rb_obj_is_kind_of( (obj), rzyre_cZyreNode )
 #define IsZyreEvent( obj ) rb_obj_is_kind_of( (obj), rzyre_cZyreEvent )
 #define IsZyrePoller( obj ) rb_obj_is_kind_of( (obj), rzyre_cZyrePoller )
+#define IsZyreCert( obj ) rb_obj_is_kind_of( (obj), rzyre_cZyreCert )
 
 /* --------------------------------------------------------------
  * Utility functions
@@ -98,8 +108,10 @@ extern void Init_zyre_ext _(( void ));
 extern void rzyre_init_node _(( void ));
 extern void rzyre_init_event _(( void ));
 extern void rzyre_init_poller _(( void ));
+extern void rzyre_init_cert _(( void ));
 
 extern zyre_t * rzyre_get_node _(( VALUE ));
+extern zcert_t * rzyre_get_cert _(( VALUE ));
 
 #endif /* end of include guard: ZYRE_EXT_H_90322ABD */
 

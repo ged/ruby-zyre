@@ -19,6 +19,11 @@ have_header( 'ruby/thread.h' ) or
 
 have_func( 'zyre_set_name', 'zyre.h' )
 have_func( 'zyre_set_silent_timeout', 'zyre.h' )
+have_func( 'zyre_set_beacon_peer_port', 'zyre.h' )
+have_func( 'zyre_set_contest_in_group', 'zyre.h' )
+have_func( 'zyre_set_zcert', 'zyre.h' )
+
+have_func( 'zcert_unset_meta', 'czmq.h' )
 
 create_header()
 create_makefile( 'zyre_ext' )

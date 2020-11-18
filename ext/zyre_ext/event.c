@@ -104,7 +104,13 @@ rzyre_event_s_from_node( VALUE klass, VALUE node )
 		const char *event_type = zyre_event_type( event );
 		VALUE event_type_s = rb_utf8_str_new_cstr( event_type );
 		VALUE event_class = rb_funcall( klass, rb_intern("type_by_name"), 1, event_type_s );
-		VALUE event_instance = rb_class_new_instance( 0, NULL, event_class );
+		VALUE event_instance;
+
+		if ( !RTEST(event_class) ) {
+			rb_raise( rb_eRuntimeError, "Unhandled event type '%s'", event_type );
+		}
+
+		event_instance = rb_class_new_instance( 0, NULL, event_class );
 
 		RTYPEDDATA_DATA( event_instance ) = event;
 

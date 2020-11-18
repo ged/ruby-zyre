@@ -25,6 +25,7 @@ class Zyre::Event
 	autoload :Exit, 'zyre/event/exit'
 	autoload :Join, 'zyre/event/join'
 	autoload :Leave, 'zyre/event/leave'
+	autoload :Leader, 'zyre/event/leader'
 	autoload :Shout, 'zyre/event/shout'
 	autoload :Silent, 'zyre/event/silent'
 	autoload :Stop, 'zyre/event/stop'

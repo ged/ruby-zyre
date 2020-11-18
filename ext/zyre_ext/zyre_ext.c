@@ -203,6 +203,17 @@ Init_zyre_ext()
 {
 	rzyre_mZyre = rb_define_module( "Zyre" );
 
+#ifdef CZMQ_BUILD_DRAFT_API
+	rb_define_const( rzyre_mZyre, "BUILT_WITH_DRAFT_CZMQ_API", Qtrue );
+#else
+	rb_define_const( rzyre_mZyre, "BUILT_WITH_DRAFT_CZMQ_API", Qfalse );
+#endif
+#ifdef ZYRE_BUILD_DRAFT_API
+	rb_define_const( rzyre_mZyre, "BUILT_WITH_DRAFT_API", Qtrue );
+#else
+	rb_define_const( rzyre_mZyre, "BUILT_WITH_DRAFT_API", Qfalse );
+#endif
+
 	rb_define_singleton_method( rzyre_mZyre, "zyre_version", rzyre_s_zyre_version, 0 );
 	rb_define_singleton_method( rzyre_mZyre, "interfaces", rzyre_s_interfaces, 0 );
 
@@ -211,5 +222,6 @@ Init_zyre_ext()
 	rzyre_init_node();
 	rzyre_init_event();
 	rzyre_init_poller();
+	rzyre_init_cert();
 }
 

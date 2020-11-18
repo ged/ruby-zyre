@@ -51,5 +51,10 @@ RSpec.describe Zyre do
 		expect( result['disposition'].encoding ).to eq( Encoding::US_ASCII )
 	end
 
+
+	it "knows whether or not it's been built with draft APIs" do
+		expect( described_class.has_draft_apis? ).to eq( true ).or( eq false )
+	end
+
 end
 

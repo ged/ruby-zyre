@@ -481,5 +481,64 @@ RSpec.describe( Zyre::Node ) do
 	end
 
 
+	context "draft APIs", :draft_api do
+
+		it "can specify a port for the ROUTER socket" do
+			node = described_class.new
+
+			expect {
+				node.beacon_peer_port = 16181
+			}.to_not raise_error()
+		end
+
+
+		it "can specify that a node should try to assume leadership of a particular group" do
+			node1 = started_node( 'node1' ) do |node|
+				# node.verbose!
+				node.set_contest_in_group( "GROUP_1" )
+				node.join( 'GROUP_1' )
+				node.join( 'GROUP_2' )
+				node.join( 'GROUP_3' )
+			end
+
+			node2 = started_node( 'node2' ) do |node|
+				# node.verbose!
+				node.set_contest_in_group( 'GROUP_1' )
+				node.set_contest_in_group( 'GROUP_2' )
+				node.join( 'GROUP_1' )
+				node.join( 'GROUP_2' )
+				node.join( 'GROUP_3' )
+			end
+
+			poller = Zyre::Poller.new( node1, node2 )
+
+			leaders = {}
+			leadership_message_count = 0
+			while ( node = poller.wait(0.5) )
+				event = node.recv
+
+				if event.type == :LEADER
+					leadership_message_count += 1
+					leaders[ event.group ] = event.peer_uuid
+				end
+			end
+
+			expect( leadership_message_count ).to eq( 4 )
+			expect( leaders.keys ).to contain_exactly( 'GROUP_1', 'GROUP_2' )
+			expect( leaders['GROUP_1'] ).to eq( node1.uuid ).or( eq node2.uuid )
+			expect( leaders['GROUP_2'] ).to eq( node2.uuid )
+		end
+
+
+		it "supports zcert="
+		it "supports zap_domain="
+
+		it "supports advertised_endpoint="
+		it "supports gossip_connect_curve"
+		it "supports gossip_unpublish"
+		it "supports require_peer"
+
+	end
+
 end
 
