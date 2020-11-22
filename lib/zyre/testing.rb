@@ -221,6 +221,18 @@ module Zyre::Testing
 		end
 
 
+		### Generate a LEADER event.
+		def leader( **overrides )
+			uuid = overrides.delete( :peer_uuid ) || self.peer_uuid
+			config = {
+				peer_name: self.peer_name,
+				group: self.group
+			}.merge( overrides )
+
+			return Zyre::Event.synthesize( :leader, uuid, **config )
+		end
+
+
 		### Generate an EXIT event.
 		def exit( **overrides )
 			uuid = overrides.delete( :peer_uuid ) || self.peer_uuid
@@ -229,6 +241,17 @@ module Zyre::Testing
 			}.merge( overrides )
 
 			return Zyre::Event.synthesize( :exit, uuid, **config )
+		end
+
+
+		### Generate a STOP event.
+		def stop( **overrides )
+			uuid = overrides.delete( :peer_uuid ) || self.peer_uuid
+			config = {
+				peer_name: self.peer_name
+			}.merge( overrides )
+
+			return Zyre::Event.synthesize( :stop, uuid, **config )
 		end
 
 	end # class EventFactory

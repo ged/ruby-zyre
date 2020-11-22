@@ -78,7 +78,7 @@ rzyre_read_event( void *node_ptr )
 	assert( node_ptr );
 
 	event_ptr = zyre_event_new( (zyre_t *)node_ptr );
-	assert( event_ptr );
+
 	return (void *)event_ptr;
 }
 
@@ -268,6 +268,9 @@ rzyre_event_s_synthesize( int argc, VALUE *argv, VALUE klass )
 			RSTRING_PTR(rb_inspect(kwvals[4])) );
 		ptr->group = rzyre_copy_required_string( kwvals[3], "group" );
 		ptr->msg = rzyre_make_zmsg_from( kwvals[4] );
+	}
+	else if ( streq(ptr->type, "LEADER") ) {
+		ptr->group = rzyre_copy_required_string( kwvals[3], "group" );
 	}
 
 	rzyre_log_obj( rval, "debug", "Synthesized a %s event.", ptr->type );

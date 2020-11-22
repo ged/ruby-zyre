@@ -16,11 +16,7 @@ rspec:
     - apt-get update
     - apt-get install -y libczmq-dev libzyre-dev
     - rake clean compile
-    - rspec --format RspecJunitFormatter --out rspec.xml
-  artifacts:
-    reports:
-      junit: rspec.xml
-      cobertura: coverage/coverage.xml
+    - rspec -cfd
 
 rubocop:
   script:

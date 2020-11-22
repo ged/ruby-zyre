@@ -1,12 +1,14 @@
 # -*- ruby -*-
 # frozen_string_literal: true
 
+require 'set'
 require 'loggability'
 
 require_relative 'zyre_ext'
 
 
-# A binding to libzyre
+#--
+# See also: ext/zyre_ext/zyre_ext.c
 module Zyre
 	extend Loggability
 
@@ -19,17 +21,8 @@ module Zyre
 	log_as :zyre
 
 
-	### Wait on one or more +nodes+ to become readable, returning the first one that does
-	### or +nil+ if the +timeout+ is zero or greater and at least that many seconds elapse.
-	### Specify a +timeout+ of -1 to wait indefinitely. The timeout is in floating-point
-	### seconds.
-	###
-	### Raises an Interrupt if the call is interrupted or the ZMQ context is destroyed.
-	def self::wait( *nodes, timeout: -1 )
-		nodes = nodes.flatten
-		return nil if nodes.empty?
-		return self.wait2( nodes, timeout )
-	end
+	@whitelisted_ips = Set.new
+	@blacklisted_ips = Set.new
 
 
 	### If the given +key+ is a Symbol, transform it into an RFC822-style header key. If
@@ -48,6 +41,26 @@ module Zyre
 		return headers.
 			transform_keys {|k| Zyre.transform_header_key(k) }.
 			transform_values {|v| v.to_s.encode('us-ascii') }
+	end
+
+
+	### Allow (whitelist) a list of IP +addresses+. For NULL, all clients from
+	### these addresses will be accepted. For PLAIN and CURVE, they will be
+	### allowed to continue with authentication. You can call this method
+	### multiple times to whitelist more IP addresses. If you whitelist one
+	### or more addresses, any non-whitelisted addresses are treated as
+	### blacklisted:
+	def self::allow( *addresses )
+		@whitelisted_ips.merge( addresses )
+	end
+
+
+	### Deny (blacklist) a list of IP +addresses+. For all security mechanisms,
+	### this rejects the connection without any further authentication. Use
+	### either a whitelist, or a blacklist, not not both. If you define both
+	### a whitelist and a blacklist, only the whitelist takes effect:
+	def self::deny( *addresses )
+		@blacklisted_ips.merge( addresses )
 	end
 
 

@@ -266,6 +266,42 @@ RSpec.describe( Zyre::Testing ) do
 		end
 
 
+		it "can create a valid LEADER event" do
+			event = factory.leader
+
+			expect( event ).to be_a( Zyre::Event::Leader )
+			expect( event.peer_uuid ).to eq( factory.peer_uuid )
+			expect( event.peer_name ).to eq( 'lancer-6' )
+			expect( event.headers ).to be_empty
+			expect( event.msg ).to be_nil
+			expect( event.group ).to eq( 'default' )
+		end
+
+
+		it "can create a valid LEAVE event with overridden config" do
+			event = factory.leader( group: 'control' )
+
+			expect( event ).to be_a( Zyre::Event::Leader )
+			expect( event.peer_uuid ).to eq( factory.peer_uuid )
+			expect( event.peer_name ).to eq( 'lancer-6' )
+			expect( event.headers ).to be_empty
+			expect( event.msg ).to be_nil
+			expect( event.group ).to eq( 'control' )
+		end
+
+
+		it "can create a valid STOP event" do
+			event = factory.stop
+
+			expect( event ).to be_a( Zyre::Event::Stop )
+			expect( event.peer_uuid ).to eq( factory.peer_uuid )
+			expect( event.peer_name ).to eq( 'lancer-6' )
+			expect( event.headers ).to be_empty
+			expect( event.msg ).to be_nil
+			expect( event.group ).to be_nil
+		end
+
+
 		it "can create a valid EXIT event" do
 			event = factory.exit
 

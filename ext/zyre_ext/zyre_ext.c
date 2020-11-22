@@ -168,7 +168,7 @@ rzyre_s_zyre_version()
  *    }
  */
 static VALUE
-rzyre_s_interfaces()
+rzyre_s_interfaces( VALUE module )
 {
 	ziflist_t *iflist = ziflist_new();
 	const VALUE rval = rb_hash_new();
@@ -195,6 +195,13 @@ rzyre_s_interfaces()
 }
 
 
+static VALUE
+rzyre_s_start_authenticator( VALUE module )
+{
+	return Qnil;
+}
+
+
 /*
  * Zyre extension init function
  */
@@ -216,6 +223,8 @@ Init_zyre_ext()
 
 	rb_define_singleton_method( rzyre_mZyre, "zyre_version", rzyre_s_zyre_version, 0 );
 	rb_define_singleton_method( rzyre_mZyre, "interfaces", rzyre_s_interfaces, 0 );
+
+	rb_define_singleton_method( rzyre_mZyre, "start_authenticator", rzyre_s_start_authenticator, 0 );
 
 	// :TODO: set up zsys_set_logsender()
 

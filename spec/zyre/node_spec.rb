@@ -530,8 +530,7 @@ RSpec.describe( Zyre::Node ) do
 		end
 
 
-		it "supports zcert="
-		it "supports zap_domain="
+		it "supports CURVE authentication"
 
 		it "supports advertised_endpoint="
 		it "supports gossip_connect_curve"

@@ -518,9 +518,7 @@ rzyre_node_leave( VALUE self, VALUE group )
  * call-seq:
  *    node.recv -> zyre_event
  *
- * Receive the next event from the network; the message may be a control
- * message (ENTER, EXIT, JOIN, LEAVE) or data (WHISPER, SHOUT).
- * Returns a Zyre::Event.
+ * Receive the next event from the network as a Zyre::Event.
  *
  */
 static VALUE

@@ -84,6 +84,8 @@ extern VALUE rzyre_cZyreEvent;
 extern VALUE rzyre_cZyrePoller;
 extern VALUE rzyre_cZyreCert;
 
+extern zactor_t *auth_actor;
+
 
 /* --------------------------------------------------------------
  * Type-check macros
