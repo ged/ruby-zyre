@@ -88,6 +88,9 @@ rzyre_cert_s_from( VALUE class, VALUE public_key, VALUE secret_key )
 	} else if ( RSTRING_LEN(public_key) == 40 && RSTRING_LEN(secret_key) == 40 ) {
 #ifdef CZMQ_BUILD_DRAFT_API
 		ptr = zcert_new_from_txt( pub_str, sec_str );
+#else
+		rb_raise( rb_eNotImpError,
+			"can't create a key from encoded keys: Czmq was not built with Draft APIs!" );
 #endif
 	}
 

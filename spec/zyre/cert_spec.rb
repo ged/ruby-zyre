@@ -212,21 +212,6 @@ RSpec.describe( Zyre::Cert ) do
 		other = cert.dup
 
 		expect( other.object_id ).not_to eq( cert.object_id )
-		expect {
-			other[ :node_id ] = '0ca260f1-8ee4-4449-89b4-19962930d6a7'
-		}.not_to change { cert[:node_id] }
-		expect {
-			other[ :node_order ] = 2
-		}.not_to change { cert[:node_order] }
-		expect {
-			other[ :marked ] = true
-		}.not_to change { cert[:marked] }
-
-		expect( cert.meta_keys ).to contain_exactly( 'node_id', 'node_order' )
-
-		expect( other[:node_id] ).to eq( '0ca260f1-8ee4-4449-89b4-19962930d6a7' )
-		expect( other[:node_order] ).to eq( '2' )
-		expect( other[:marked] ).to eq( 'true' )
 	end
 
 
