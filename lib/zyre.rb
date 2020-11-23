@@ -12,7 +12,7 @@ module Zyre
 
 
 	# Gem version (semver)
-	VERSION = '0.3.0'
+	VERSION = '0.3.1'
 
 
 	# Set up a logger for Zyre classes

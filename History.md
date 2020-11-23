@@ -2,6 +2,13 @@
 
 ---
 
+## v0.3.1 [2020-11-23] Michael Granger <ged@faeriemud.org>
+
+Bugfixes:
+
+- Use cast String in rzyre_add_frames_to_zmsg()
+
+
 ## v0.3.0 [2020-11-16] Michael Granger <ged@faeriemud.org>
 
 Improvements:
