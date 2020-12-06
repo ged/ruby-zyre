@@ -195,6 +195,23 @@ rzyre_s_interfaces( VALUE module )
 }
 
 
+/*
+ * call-seq:
+ *    Zyre.disable_zsys_handler
+ *
+ * Disable CZMQ's default signal handler, which allows for handling it in Ruby instead.
+ *
+ */
+static VALUE
+rzyre_s_disable_zsys_handler( VALUE module )
+{
+	rzyre_log( "info", "Disabling zsys INT/TERM handler." );
+	zsys_handler_set( NULL );
+	return Qtrue;
+}
+
+
+
 static VALUE
 rzyre_s_start_authenticator( VALUE module )
 {
@@ -223,7 +240,11 @@ Init_zyre_ext()
 
 	rb_define_singleton_method( rzyre_mZyre, "zyre_version", rzyre_s_zyre_version, 0 );
 	rb_define_singleton_method( rzyre_mZyre, "interfaces", rzyre_s_interfaces, 0 );
+	rb_define_singleton_method( rzyre_mZyre, "disable_zsys_handler", rzyre_s_disable_zsys_handler, 0 );
 
+	// :TODO: Allow for startup of the zauth agent. This will require enough of a
+	// subset of CZMQ that I hesitate to do it in Zyre. Maybe better to just write a
+	// decent CZMQ library instead?
 	rb_define_singleton_method( rzyre_mZyre, "start_authenticator", rzyre_s_start_authenticator, 0 );
 
 	// :TODO: set up zsys_set_logsender()

@@ -36,7 +36,8 @@
 #endif
 
 
-// For synthesized events
+// For synthesized events, sizeof calculations, copied from the czmq and zyre
+// source
 struct _zyre_event_t {
     char *type;             //  Event type as string
     char *peer_uuid;        //  Sender UUID as string
@@ -46,6 +47,7 @@ struct _zyre_event_t {
     char *group;            //  Group name for a SHOUT event
     zmsg_t *msg;            //  Message payload for SHOUT or WHISPER
 };
+
 
 
 /* --------------------------------------------------------------

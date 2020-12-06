@@ -21,14 +21,13 @@ static void rzyre_node_free( void *ptr );
 
 
 static const rb_data_type_t rzyre_node_t = {
-	"Zyre::Node",
-	{
-		NULL,
-		rzyre_node_free
+	.wrap_struct_name = "Zyre::Node",
+	.function = {
+		.dmark = NULL,
+		.dfree = rzyre_node_free,
 	},
-	0,
-	0,
-	RUBY_TYPED_FREE_IMMEDIATELY,
+	.data = NULL,
+	.flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
 
@@ -42,6 +41,7 @@ rzyre_node_free( void *ptr )
 		zyre_destroy( (zyre_t **)&ptr );
 	}
 }
+
 
 
 /*

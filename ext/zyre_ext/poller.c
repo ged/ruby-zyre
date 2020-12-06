@@ -15,14 +15,13 @@ VALUE rzyre_cZyrePoller;
 static void rzyre_poller_free( void *ptr );
 
 static const rb_data_type_t rzyre_poller_t = {
-	"Zyre::Poller",
-	{
-		NULL,
-		rzyre_poller_free
+	.wrap_struct_name = "Zyre::Poller",
+	.function = {
+		.dmark = NULL,
+		.dfree = rzyre_poller_free,
 	},
-	0,
-	0,
-	RUBY_TYPED_FREE_IMMEDIATELY,
+	.data = NULL,
+	.flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
 

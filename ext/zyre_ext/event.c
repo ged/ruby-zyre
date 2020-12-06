@@ -15,14 +15,13 @@ VALUE rzyre_cZyreEvent;
 static void rzyre_event_free( void *ptr );
 
 static const rb_data_type_t rzyre_event_t = {
-	"Zyre::Event",
-	{
-		NULL,
-		rzyre_event_free
+	.wrap_struct_name = "Zyre::Event",
+	.function = {
+		.dmark = NULL,
+		.dfree = rzyre_event_free,
 	},
-	0,
-	0,
-	RUBY_TYPED_FREE_IMMEDIATELY,
+	.data = NULL,
+	.flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
 

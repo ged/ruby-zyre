@@ -11,18 +11,18 @@
 
 VALUE rzyre_cZyreCert;
 
-
+// Forward declarations
 static void rzyre_cert_free( void *ptr );
 
+
 static const rb_data_type_t rzyre_cert_t = {
-	"Zyre::Cert",
-	{
-		NULL,
-		rzyre_cert_free
+	.wrap_struct_name = "Zyre::Cert",
+	.function = {
+		.dmark = NULL,
+		.dfree = rzyre_cert_free,
 	},
-	0,
-	0,
-	RUBY_TYPED_FREE_IMMEDIATELY,
+	.data = NULL,
+	.flags = RUBY_TYPED_FREE_IMMEDIATELY,
 };
 
 
