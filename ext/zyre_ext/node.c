@@ -883,7 +883,7 @@ rzyre_node_zcert_eq( VALUE self, VALUE cert )
 	zyre_t *ptr = rzyre_get_node( self );
 	zcert_t *zcert = rzyre_get_cert( cert );
 
-	if ( zcert_secret_txt(zcert) == FORTY_ZEROES ) {
+	if ( streq(zcert_secret_txt(zcert), FORTY_ZEROES) ) {
 		rb_raise( rb_eArgError,
 			"can't use this cert for authentication (no curve or missing secret key)" );
 	}
@@ -1030,7 +1030,11 @@ rzyre_init_node( void )
 	 * Refs:
 	 * - https://github.com/zeromq/zyre#readme
 	 */
+#if RUBY_API_VERSION_MAJOR >= 3
+	rzyre_cZyreNode = rb_define_class_under( rzyre_mZyre, "Node", rb_cObject );
+#else
 	rzyre_cZyreNode = rb_define_class_under( rzyre_mZyre, "Node", rb_cData );
+#endif
 
 	rb_define_alloc_func( rzyre_cZyreNode, rzyre_node_alloc );
 

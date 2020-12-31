@@ -16,6 +16,7 @@
 #include <ruby/intern.h>
 #include <ruby/thread.h>
 #include <ruby/encoding.h>
+#include <ruby/version.h>
 
 #ifdef HAVE_ZCERT_UNSET_META
 #	define CZMQ_BUILD_DRAFT_API 1
