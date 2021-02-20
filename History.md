@@ -1,6 +1,13 @@
 # Release History for zyre
 
 ---
+## v0.4.0 [2021-02-19] Michael Granger <ged@faeriemud.org>
+
+Improvements:
+
+- Add partial support for draft APIs
+- Add a singleton method for disabling CZMQ's default SIGINT/TERM handler.
+
 
 ## v0.3.1 [2020-11-23] Michael Granger <ged@faeriemud.org>
 
