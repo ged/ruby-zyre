@@ -10,6 +10,7 @@ lib/zyre/event/enter.rb
 lib/zyre/event/evasive.rb
 lib/zyre/event/exit.rb
 lib/zyre/event/join.rb
+lib/zyre/event/leader.rb
 lib/zyre/event/leave.rb
 lib/zyre/event/shout.rb
 lib/zyre/event/silent.rb
