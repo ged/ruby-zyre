@@ -1,6 +1,13 @@
 # Release History for zyre
 
 ---
+## v0.4.1 [2021-03-16] Michael Granger <ged@faeriemud.org>
+
+Bugfixes:
+
+- Add a missing library file to the manifest.
+
+
 ## v0.4.0 [2021-02-19] Michael Granger <ged@faeriemud.org>
 
 Improvements:
