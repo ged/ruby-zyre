@@ -199,5 +199,125 @@ RSpec.describe( Zyre::Event ) do
 
 	end
 
+
+
+	describe "inspect output" do
+
+		let( :peer_uuid ) { '8D9B6F67-2B40-4E56-B352-39029045B568' }
+		let( :peer_name ) { 'node1' }
+		let( :peer_addr ) { 'in-proc:/synthesized' }
+
+
+		it "has useful inspect output for ENTER events" do
+			event = described_class.synthesize( :ENTER,
+				peer_uuid, peer_name: peer_name, peer_addr: peer_addr,
+				headers: {'Content-type' => 'application/msgpack'} )
+
+			expect( event.inspect ).to include( peer_uuid )
+			expect( event.inspect ).to include( peer_name )
+			expect( event.inspect ).to include( peer_addr )
+			expect( event.inspect ).to match( /has entered the network/i )
+			expect( event.inspect ).to match( /Content-type/i )
+			expect( event.inspect ).to match( %r{application/msgpack}i )
+		end
+
+
+		it "has useful inspect output for EVASIVE events" do
+			event = described_class.synthesize( :EVASIVE, peer_uuid, peer_name: peer_name )
+
+			expect( event.inspect ).to include( peer_uuid )
+			expect( event.inspect ).to include( peer_name )
+			expect( event.inspect ).to match( /is being evasive/i )
+		end
+
+
+		it "has useful inspect output for EXIT events" do
+			event = described_class.synthesize( :EXIT, peer_uuid, peer_name: peer_name )
+
+			expect( event.inspect ).to include( peer_uuid )
+			expect( event.inspect ).to include( peer_name )
+			expect( event.inspect ).to match( /has left the network/i )
+		end
+
+
+		it "has useful inspect output for JOIN events" do
+			event = described_class.synthesize( :JOIN,
+				peer_uuid, group: 'CHANNEL1', peer_name: peer_name )
+
+			expect( event.inspect ).to include( peer_uuid )
+			expect( event.inspect ).to include( peer_name )
+			expect( event.inspect ).to include( 'CHANNEL1' )
+			expect( event.inspect ).to match( /joined/i )
+		end
+
+
+		it "has useful inspect output for LEADER events" do
+			event = described_class.synthesize( :LEADER,
+				peer_uuid, group: 'CHANNEL1', peer_name: peer_name )
+
+			expect( event.inspect ).to include( peer_uuid )
+			expect( event.inspect ).to include( peer_name )
+			expect( event.inspect ).to include( 'CHANNEL1' )
+			expect( event.inspect ).to match( /has been elected leader of/i )
+		end
+
+
+		it "has useful inspect output for LEAVE events" do
+			event = described_class.synthesize( :LEAVE,
+				peer_uuid, group: 'CHANNEL1', peer_name: peer_name )
+
+			expect( event.inspect ).to include( peer_uuid )
+			expect( event.inspect ).to include( peer_name )
+			expect( event.inspect ).to include( 'CHANNEL1' )
+			expect( event.inspect ).to match( /left/i )
+		end
+
+
+		it "has useful inspect output for SHOUT events" do
+			message = 'Hey guys, who wants to play Valheim?'
+			event = described_class.synthesize( :SHOUT,
+				peer_uuid, group: 'CHANNEL1', msg: message,
+				peer_name: peer_name )
+
+			expect( event.inspect ).to include( peer_uuid )
+			expect( event.inspect ).to include( peer_name )
+			expect( event.inspect ).to include( 'CHANNEL1' )
+			expect( event.inspect ).to match( / on /i )
+			expect( event.inspect ).to include( message )
+		end
+
+
+		it "has useful inspect output for SILENT events" do
+			event = described_class.synthesize( :SILENT, peer_uuid, peer_name: peer_name )
+
+			expect( event.inspect ).to include( peer_uuid )
+			expect( event.inspect ).to include( peer_name )
+			expect( event.inspect ).to match( /isn't responding to pings/i )
+		end
+
+
+		it "has useful inspect output for STOP events" do
+			event = described_class.synthesize( :STOP, peer_uuid )
+
+			expect( event.inspect ).to match( /node is stopping/i )
+		end
+
+
+		it "has useful inspect output for WHISPER events" do
+			target = SecureRandom.uuid
+			message = "Hey #{target}, want to play Valheim?"
+			event = described_class.synthesize( :WHISPER,
+				peer_uuid, msg: message,
+				peer_name: peer_name )
+
+			expect( event.inspect ).to include( peer_uuid )
+			expect( event.inspect ).to include( peer_name )
+			expect( event.inspect ).to match( /whisper from/i )
+			expect( event.inspect ).to include( message )
+		end
+
+	end
+
+
 end
 

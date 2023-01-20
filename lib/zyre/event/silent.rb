@@ -8,7 +8,7 @@ class Zyre::Event::Silent < Zyre::Event
 
 	### Provide the details of the inspect message.
 	def inspect_details
-		return "%s (%s) isn't responding to pings" % [
+		return "%s %s (%s) isn't responding to pings" % [
 			self.peer_uuid,
 			self.peer_name,
 			self.headers,
