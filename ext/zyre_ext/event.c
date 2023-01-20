@@ -175,7 +175,7 @@ rzyre_zhash_from_rhash( VALUE ruby_hash )
 
 /*
  * call-seq:
- *    Zyre::Event.synthesized( type, peer_uuid, **fields )   -> event
+ *    Zyre::Event.synthesize( type, peer_uuid, **fields )   -> event
  *
  * Create an event in memory without going through a Zyre::Node. This is useful for
  * testing.
