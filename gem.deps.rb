@@ -3,7 +3,7 @@
 
 source 'https://rubygems.org/'
 
-gem 'loggability', '~> 0.18'
+gem 'loggability', '~> 0.18', '>= 0.18.2'
 
 group :development do
 	gem 'rake-deveiate', '~> 0.15', '>= 0.15.1'
