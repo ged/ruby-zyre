@@ -27,6 +27,7 @@
 
 #include "zyre.h"
 #include "czmq.h"
+#include "zmq.h"
 
 #ifndef TRUE
 # define TRUE    1

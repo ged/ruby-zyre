@@ -44,7 +44,7 @@ RSpec.describe( Zyre::Node ) do
 
 
 	it "can set headers" do
-		node1 = started_node do |n|
+		_node1 = started_node do |n|
 			n.set_header( 'Protocol-version', '2' )
 		end
 		node2 = started_node
@@ -56,7 +56,7 @@ RSpec.describe( Zyre::Node ) do
 
 
 	it "can set headers from a hash" do
-		node1 = started_node do |n|
+		_node1 = started_node do |n|
 			n.headers = {
 				protocol_version: 2,
 				content_type: 'application/messagepack'

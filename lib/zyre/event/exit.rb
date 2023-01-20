@@ -11,7 +11,6 @@ class Zyre::Event::Exit < Zyre::Event
 		return "%s (%s) has left the network" % [
 			self.peer_uuid,
 			self.peer_name,
-			self.headers,
 		]
 	end
 

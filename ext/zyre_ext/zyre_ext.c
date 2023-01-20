@@ -5,6 +5,12 @@
  *  Authors:
  *    * Michael Granger <ged@FaerieMUD.org>
  *
+ *  Refs:
+ *  - https://github.com/zeromq/zyre#api-summary
+ *  - http://api.zeromq.org/master:zmq-z85-decode
+ *  - http://api.zeromq.org/master:zmq-z85-encode
+ *
+ *
  */
 
 #include "zyre_ext.h"
@@ -148,7 +154,7 @@ rzyre_s_zyre_version()
 
 	version = zyre_version();
 
-	return INT2NUM( version );
+	return LONG2NUM( version );
 }
 
 
@@ -180,6 +186,7 @@ rzyre_s_interfaces( VALUE module )
 		const char *netmask_s = ziflist_netmask( iflist );
 		const VALUE info_hash = rb_hash_new();
 
+		rzyre_log( "debug", "Getting info for %s", address_s );
 		rb_hash_aset( info_hash, ID2SYM(rb_intern("address")), rb_usascii_str_new_cstr(address_s) );
 		rb_hash_aset( info_hash, ID2SYM(rb_intern("broadcast")), rb_usascii_str_new_cstr(broadcast_s) );
 		rb_hash_aset( info_hash, ID2SYM(rb_intern("netmask")), rb_usascii_str_new_cstr(netmask_s) );
@@ -211,6 +218,77 @@ rzyre_s_disable_zsys_handler( VALUE module )
 }
 
 
+/*
+ * call-seq:
+ *    Zyre.z85_encode( data )   -> string
+ *
+ * Return the specified binary +data+ as a Z85-encoded binary string. The size of the data must
+ * be divisible by 4. If there is a problem encoding the data, returns +nil+.
+ *
+ */
+static VALUE
+rzyre_s_z85_encode( VALUE module, VALUE data )
+{
+#if HAVE_ZMQ_Z85_ENCODE
+	const char *data_str = StringValuePtr( data );
+	const long len = RSTRING_LEN( data );
+	const long res_len = (len * 1.25) + 1;
+	char *encoded = NULL;
+	VALUE result = Qnil;
+
+	if ( len % 4 ) return Qnil;
+
+	encoded = RB_ZALLOC_N( char, res_len );
+	zmq_z85_encode( encoded, (unsigned char *)data_str, len );
+
+	if ( encoded != NULL ) {
+		result = rb_usascii_str_new( encoded, res_len - 1 );
+	}
+
+	ruby_xfree( encoded );
+
+	return result;
+#else
+	rb_notimplement();
+#endif
+}
+
+
+/*
+ * call-seq:
+ *    Zyre.z85_decode( string )   -> data
+ *
+ * Return the data decoded from the specified Z85-encoded binary +string+. If there is a
+ * problem decoding the string, returns +nil+.
+ *
+ */
+static VALUE
+rzyre_s_z85_decode( VALUE module, VALUE string )
+{
+#if HAVE_ZMQ_Z85_DECODE
+	const char *data_str = StringValueCStr( string );
+	const long len = RSTRING_LEN( string );
+	const long res_len = (len * 0.8) + 1;
+	char *decoded = NULL;
+	VALUE result = Qnil;
+
+	if ( len % 5 ) return Qnil;
+
+	decoded = RB_ZALLOC_N( char, res_len );
+	zmq_z85_decode( (unsigned char *)decoded, data_str );
+
+	if ( decoded != NULL ) {
+		result = rb_str_new( decoded, res_len - 1 );
+	}
+
+	ruby_xfree( decoded );
+
+	return result;
+#else
+	rb_notimplement();
+#endif
+}
+
 
 static VALUE
 rzyre_s_start_authenticator( VALUE module )
@@ -225,6 +303,11 @@ rzyre_s_start_authenticator( VALUE module )
 void
 Init_zyre_ext()
 {
+	/*
+	 * Document-module: Zyre
+	 *
+	 * The top level namespace for Zyre classes.
+	 */
 	rzyre_mZyre = rb_define_module( "Zyre" );
 
 #ifdef CZMQ_BUILD_DRAFT_API
@@ -241,6 +324,9 @@ Init_zyre_ext()
 	rb_define_singleton_method( rzyre_mZyre, "zyre_version", rzyre_s_zyre_version, 0 );
 	rb_define_singleton_method( rzyre_mZyre, "interfaces", rzyre_s_interfaces, 0 );
 	rb_define_singleton_method( rzyre_mZyre, "disable_zsys_handler", rzyre_s_disable_zsys_handler, 0 );
+
+	rb_define_singleton_method( rzyre_mZyre, "z85_encode", rzyre_s_z85_encode, 1 );
+	rb_define_singleton_method( rzyre_mZyre, "z85_decode", rzyre_s_z85_decode, 1 );
 
 	// :TODO: Allow for startup of the zauth agent. This will require enough of a
 	// subset of CZMQ that I hesitate to do it in Zyre. Maybe better to just write a

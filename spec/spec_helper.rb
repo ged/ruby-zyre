@@ -49,7 +49,7 @@ RSpec.configure do |config|
 	config.profile_examples = 5
 	config.run_all_when_everything_filtered = true
 	config.shared_context_metadata_behavior = :apply_to_host_groups
-	# config.warnings = true
+	config.warnings = true
 
 	config.before( :suite ) do
 		Zyre::Testing.check_fdmax
