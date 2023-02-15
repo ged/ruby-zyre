@@ -1,6 +1,13 @@
 # Release History for zyre
 
 ---
+## v0.5.0 [2023-02-14] Michael Granger <ged@faeriemud.org>
+
+Improvements:
+
+- Add Z85-encoding and -decoding.
+
+
 ## v0.4.1 [2021-03-16] Michael Granger <ged@faeriemud.org>
 
 Bugfixes:
