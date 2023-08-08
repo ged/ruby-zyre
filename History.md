@@ -1,6 +1,14 @@
 # Release History for zyre
 
 ---
+
+## v0.6.0 [2023-08-08] Michael Granger <ged@faeriemud.org>
+
+Improvements:
+
+- Reset the zyre interface list when it's fetched
+
+
 ## v0.5.0 [2023-02-14] Michael Granger <ged@faeriemud.org>
 
 Improvements:
