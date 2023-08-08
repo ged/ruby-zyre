@@ -5,7 +5,7 @@ source 'https://rubygems.org/'
 gem 'loggability', '~> 0.18', '>= 0.18.2'
 
 group :development do
-	gem 'rake-deveiate', '~> 0.15', '>= 0.15.1'
+	gem 'rake-deveiate', '~> 0.22'
 	gem 'rake-compiler', '~> 1.1'
 	gem 'rubocop', '~> 0.91'
 	gem 'rspec_junit_formatter', '~> 0.4'

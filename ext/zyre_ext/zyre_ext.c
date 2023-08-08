@@ -176,7 +176,10 @@ rzyre_s_zyre_version()
 static VALUE
 rzyre_s_interfaces( VALUE module )
 {
+
 	ziflist_t *iflist = ziflist_new();
+	ziflist_reload( iflist );
+
 	const VALUE rval = rb_hash_new();
 	const char *iface = ziflist_first( iflist );
 
