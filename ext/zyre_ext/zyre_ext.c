@@ -17,6 +17,8 @@
 
 VALUE rzyre_mZyre;
 
+static zactor_t *auth;
+
 
 /* --------------------------------------------------------------
  * Logging Functions
@@ -293,10 +295,125 @@ rzyre_s_z85_decode( VALUE module, VALUE string )
 }
 
 
+
+/*
+ * call-seq:
+ *    Zyre.start_authenticator   -> true
+ *
+ * Start the ZAUTH authenticator actor. If it's already running, this
+ * call is silently ignored.
+ *
+ */
 static VALUE
 rzyre_s_start_authenticator( VALUE module )
 {
-	return Qnil;
+	if ( !auth ) {
+		rzyre_log_obj( rzyre_mZyre, "info", "starting up the ZAUTH actor." );
+		auth = zactor_new( zauth, NULL );
+		assert( auth );
+	}
+
+	return Qtrue;
+}
+
+
+/*
+ * call-seq:
+ *    Zyre.authenticator_started?   -> true or false
+ *
+ * Returns `true` if the ZAUTH authenticator actor is running.
+ *
+ */
+static VALUE
+rzyre_s_authenticator_started_p( VALUE module )
+{
+	if ( auth ) {
+		return Qtrue;
+	} else {
+		return Qfalse;
+	}
+}
+
+
+/*
+ * Async wait function; called without the GVL.
+ */
+static void *
+rzyre_wait_for_auth_without_gvl( void *_unused )
+{
+	zsock_wait( auth );
+	return NULL;
+}
+
+
+/*
+ * call-seq:
+ *    Zyre.verbose_auth!
+ *
+ * Enable the ZAUTH actor's verbose logging.
+ *
+ */
+static VALUE
+rzyre_s_verbose_auth_bang( VALUE module )
+{
+	if ( auth ) {
+		zstr_sendx( auth, "VERBOSE", NULL );
+		rb_thread_call_without_gvl2( rzyre_wait_for_auth_without_gvl, 0, RUBY_UBF_IO, 0 );
+	} else {
+		rb_raise( rb_eRuntimeError, "can't enable verbose auth: authenticator is not started." );
+	}
+
+	return Qtrue;
+}
+
+
+/*
+ * call-seq:
+ *    Zyre.enable_curve_auth( cert_dir=nil )
+ *
+ * Enable CURVE authentication, using the specified +cert_dir+ for allowed
+ * public certificates. If no +cert_dir+ is given, any connection presenting a valid CURVE 
+ * certificate will be allowed.
+ *
+ */
+static VALUE
+rzyre_s_enable_curve_auth( int argc, VALUE *argv, VALUE module )
+{
+	VALUE cert_dir = Qnil;
+	char *cert_dir_s;
+
+	rb_scan_args( argc, argv, "01", &cert_dir );
+
+	if ( argc ) {
+		cert_dir_s = StringValueCStr( cert_dir );
+		zstr_sendx( auth, "CURVE", cert_dir_s, NULL );
+	} else {
+		zstr_sendx( auth, "CURVE", CURVE_ALLOW_ANY, NULL );
+	}
+
+	rb_thread_call_without_gvl2( rzyre_wait_for_auth_without_gvl, 0, RUBY_UBF_IO, 0 );
+
+	return Qtrue;
+}
+
+
+/*
+ * call-seq:
+ *    Zyre.stop_authenticator   -> true
+ *
+ * Stop the ZAUTH authenticator actor if it is running. If it's not running, this
+ * call is silently ignored.
+ *
+ */
+static VALUE
+rzyre_s_stop_authenticator( VALUE module )
+{
+	if ( auth ) {
+		rzyre_log_obj( rzyre_mZyre, "info", "shutting down the ZAUTH actor." );
+		zactor_destroy( &auth );
+	}
+
+	return Qtrue;
 }
 
 
@@ -326,15 +443,20 @@ Init_zyre_ext()
 
 	rb_define_singleton_method( rzyre_mZyre, "zyre_version", rzyre_s_zyre_version, 0 );
 	rb_define_singleton_method( rzyre_mZyre, "interfaces", rzyre_s_interfaces, 0 );
-	rb_define_singleton_method( rzyre_mZyre, "disable_zsys_handler", rzyre_s_disable_zsys_handler, 0 );
+	rb_define_singleton_method( rzyre_mZyre, "disable_zsys_handler",
+		rzyre_s_disable_zsys_handler, 0 );
 
 	rb_define_singleton_method( rzyre_mZyre, "z85_encode", rzyre_s_z85_encode, 1 );
 	rb_define_singleton_method( rzyre_mZyre, "z85_decode", rzyre_s_z85_decode, 1 );
 
-	// :TODO: Allow for startup of the zauth agent. This will require enough of a
-	// subset of CZMQ that I hesitate to do it in Zyre. Maybe better to just write a
-	// decent CZMQ library instead?
-	rb_define_singleton_method( rzyre_mZyre, "start_authenticator", rzyre_s_start_authenticator, 0 );
+	rb_define_singleton_method( rzyre_mZyre, "start_authenticator",
+		rzyre_s_start_authenticator, 0 );
+	rb_define_singleton_method( rzyre_mZyre, "authenticator_started?",
+		rzyre_s_authenticator_started_p, 0 );
+	rb_define_singleton_method( rzyre_mZyre, "stop_authenticator", rzyre_s_stop_authenticator, 0 );
+
+	rb_define_singleton_method( rzyre_mZyre, "verbose_auth!", rzyre_s_verbose_auth_bang, 0 );
+	rb_define_singleton_method( rzyre_mZyre, "enable_curve_auth", rzyre_s_enable_curve_auth, -1 );
 
 	// :TODO: set up zsys_set_logsender()
 

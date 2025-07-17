@@ -126,5 +126,100 @@ RSpec.describe( Zyre ) do
 
 	end
 
+
+	describe "ZAUTH authenticator" do
+
+		after( :each ) do
+			described_class.stop_authenticator
+		end
+
+
+		it "can be started" do
+			expect {
+				described_class.start_authenticator
+			}.to change { described_class.authenticator_started? }.to( true )
+		end
+
+
+		it "ignores call to start if it's already started" do
+			described_class.start_authenticator
+
+			expect {
+				described_class.start_authenticator
+			}.not_to raise_error
+		end
+
+
+		it "can be stopped" do
+			described_class.start_authenticator
+
+			expect {
+				described_class.stop_authenticator
+			}.to change { described_class.authenticator_started? }.to( false )
+		end
+
+
+		it "ignores calls to stop if it's not started" do
+			expect {
+				described_class.stop_authenticator
+			}.not_to raise_error
+		end
+
+
+		it "can enable verbose auth logging" do
+			described_class.start_authenticator
+			expect {
+				described_class.verbose_auth!
+			}.not_to raise_error
+		end
+
+
+		it "raises an error if verbose auth logging is enabled before the authenticator is started" do
+			expect {
+				described_class.verbose_auth!
+			}.to raise_error( /authenticator is not started/i )
+		end
+
+
+		fit "supports any-cert style authentication" do
+			described_class.start_authenticator
+			described_class.verbose_auth!
+			described_class.enable_curve_auth
+
+			server_cert = Zyre::Cert.new
+			server = started_node( 'server' ) do |node|
+				node.verbose!
+				node.zap_domain = 'TEST'
+				node.zcert = server_cert
+				node.set_header( 'X-PUBLICKEY', server_cert.public_txt )
+				node.join( 'TEST' )
+			end
+
+			client_cert = Zyre::Cert.new
+			authed_client = started_node( 'authed_client' ) do |node|
+				node.verbose!
+				node.zap_domain = 'TEST'
+				node.zcert = client_cert
+				node.set_header( 'X-PUBLICKEY', client_cert.public_txt )
+				node.join( 'TEST' )
+			end
+			authed_client.shout( 'TEST', 'authed_client hello' )
+
+			result = server.wait_for( :JOIN, timeout: 0.2 )
+			expect( result ).to be_a( Zyre::Event::Join )
+
+			noauth_client = started_node( 'noauth_client' ) do |node|
+				node.verbose!
+				node.zap_domain = 'TEST'
+				node.join( 'TEST' )
+			end
+			noauth_client.shout( 'TEST', 'noauth_client hello' )
+
+			result = server.wait_for( :JOIN, timeout: 0.2 )
+			expect( result ).to be_nil
+		end
+
+	end
+
 end
 

@@ -46,7 +46,7 @@ RSpec.describe( Zyre::Cert ) do
 
 		expect( result ).to be_a( described_class )
 		expect( result.public_key ).to eq( cert.public_key )
-		expect( result.secret_key ).to eq( Zyre::Cert::EMPTY_KEY )
+		expect( result.secret_key ).to eq( described_class::EMPTY_KEY )
 	end
 
 
@@ -197,7 +197,7 @@ RSpec.describe( Zyre::Cert ) do
 
 	it "can be applied to a Zyre node", :draft_apis do
 		node = instance_double( Zyre::Node )
-		cert = Zyre::Cert.new
+		cert = described_class.new
 
 		expect( node ).to receive( :zcert= ).with( cert )
 		cert.apply( node )
@@ -212,6 +212,8 @@ RSpec.describe( Zyre::Cert ) do
 		other = cert.dup
 
 		expect( other.object_id ).not_to eq( cert.object_id )
+		expect( other[:node_id] ).to eq( cert[:node_id] )
+		expect( other[:node_order] ).to eq( cert[:node_order] )
 	end
 
 
