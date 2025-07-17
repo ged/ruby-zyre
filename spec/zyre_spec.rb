@@ -7,7 +7,11 @@ require 'zyre'
 
 RSpec.describe( Zyre ) do
 
+	before( :each ) do
+		@interface = described_class.interface
+	end
 	after( :each ) do
+		described_class.interface = @interface
 		described_class.stop_authenticator
 	end
 
@@ -65,6 +69,21 @@ RSpec.describe( Zyre ) do
 
 	it "knows whether or not it's been built with draft APIs" do
 		expect( described_class.has_draft_apis? ).to eq( true ).or( eq false )
+	end
+
+
+	it "can set the interface used by all nodes" do
+		expect {
+			described_class.interface = 'LENNY'
+		}.to change { described_class.interface }.to( 'LENNY' )
+	end
+
+
+	it "clears the interface setting if set to `nil`" do
+		described_class.interface = "eth0"
+		expect {
+			described_class.interface = nil
+		}.to change { described_class.interface }.to( nil )
 	end
 
 

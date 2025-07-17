@@ -286,6 +286,7 @@ rzyre_node_interface_eq( VALUE self, VALUE interface )
 	zyre_t *ptr = rzyre_get_node( self );
 	const char *interface_str = StringValueCStr( interface );
 
+	rb_warn( "Setting #interface on a Node sets it globally." );
 	zyre_set_interface( ptr, interface_str );
 
 	return Qtrue;

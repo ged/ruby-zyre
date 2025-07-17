@@ -336,6 +336,26 @@ rzyre_s_authenticator_started_p( VALUE module )
 
 
 /*
+ * call-seq:
+ *    Zyre.stop_authenticator   -> true
+ *
+ * Stop the ZAUTH authenticator actor if it is running. If it's not running, this
+ * call is silently ignored.
+ *
+ */
+static VALUE
+rzyre_s_stop_authenticator( VALUE module )
+{
+	if ( auth ) {
+		rzyre_log_obj( rzyre_mZyre, "info", "shutting down the ZAUTH actor." );
+		zactor_destroy( &auth );
+	}
+
+	return Qtrue;
+}
+
+
+/*
  * Async wait function; called without the GVL.
  */
 static void *
@@ -372,7 +392,7 @@ rzyre_s_verbose_auth_bang( VALUE module )
  *    Zyre.enable_curve_auth( cert_dir=nil )
  *
  * Enable CURVE authentication, using the specified +cert_dir+ for allowed
- * public certificates. If no +cert_dir+ is given, any connection presenting a valid CURVE 
+ * public certificates. If no +cert_dir+ is given, any connection presenting a valid CURVE
  * certificate will be allowed.
  *
  */
@@ -399,18 +419,45 @@ rzyre_s_enable_curve_auth( int argc, VALUE *argv, VALUE module )
 
 /*
  * call-seq:
- *    Zyre.stop_authenticator   -> true
+ *    Zyre.interface   -> string
  *
- * Stop the ZAUTH authenticator actor if it is running. If it's not running, this
- * call is silently ignored.
+ * Return network interface to use for broadcasts, or nil if none was set.
  *
  */
 static VALUE
-rzyre_s_stop_authenticator( VALUE module )
+rzyre_s_interface( VALUE module )
 {
-	if ( auth ) {
-		rzyre_log_obj( rzyre_mZyre, "info", "shutting down the ZAUTH actor." );
-		zactor_destroy( &auth );
+	const char *interface = zsys_interface();
+
+	if ( strnlen(interface, 1) == 0 ) {
+		return Qnil;
+	}
+
+	return rb_utf8_str_new_cstr( interface );
+}
+
+
+/*
+ * call-seq:
+ *    Zyre.interface = string
+ *
+ * Set network interface name to use for broadcasts.
+ *
+ * This lets the interface be configured for test environments where required.
+ * For example, on Mac OS X, zbeacon cannot bind to 255.255.255.255 which is
+ * the default when there is no specified interface. If the environment
+ * variable ZSYS_INTERFACE is set, use that as the default interface name.
+ * Setting the interface to "*" means "use all available interfaces".
+ *
+ */
+static VALUE
+rzyre_s_interface_eq( VALUE module, VALUE new_interface )
+{
+	if ( NIL_P(new_interface) ) {
+		zsys_set_interface( "" );
+	} else {
+		const char *new_interface_s = StringValueCStr( new_interface );
+		zsys_set_interface( new_interface_s );
 	}
 
 	return Qtrue;
@@ -457,6 +504,9 @@ Init_zyre_ext()
 
 	rb_define_singleton_method( rzyre_mZyre, "verbose_auth!", rzyre_s_verbose_auth_bang, 0 );
 	rb_define_singleton_method( rzyre_mZyre, "enable_curve_auth", rzyre_s_enable_curve_auth, -1 );
+
+	rb_define_singleton_method( rzyre_mZyre, "interface", rzyre_s_interface, 0 );
+	rb_define_singleton_method( rzyre_mZyre, "interface=", rzyre_s_interface_eq, 1 );
 
 	// :TODO: set up zsys_set_logsender()
 

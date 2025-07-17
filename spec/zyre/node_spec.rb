@@ -27,10 +27,10 @@ RSpec.describe( Zyre::Node ) do
 
 
 	before( :each ) do
-		@interface = Zyre.interfaces.keys.first
+		@interface = Zyre.interface
 	end
 	after( :each ) do
-		described_class.new.interface = @interface
+		Zyre.interface = @interface
 	end
 
 
@@ -116,11 +116,11 @@ RSpec.describe( Zyre::Node ) do
 	end
 
 
-	it "can be set to communicate on a particular network interface" do
+	it "has a backward-compatible method for setting the interface on a Node" do
 		node = described_class.new
 		expect {
 			node.interface = 'lo0'
-		}.to_not raise_error
+		}.to change { Zyre.interface }.to( 'lo0' )
 	end
 
 
