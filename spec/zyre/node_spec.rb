@@ -26,6 +26,14 @@ RSpec.describe( Zyre::Node ) do
 	TEST_BINARY_STRING = TEST_BINARY_STRING_PARTS.join( '' )
 
 
+	before( :each ) do
+		@interface = Zyre.interfaces.keys.first
+	end
+	after( :each ) do
+		described_class.new.interface = @interface
+	end
+
+
 	it "can be created anonymously" do
 		node = described_class.new
 
