@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# Play with how Zauth should be implmented from the Ruby perspective.
+# Play with how Zauth should be implwmented from the Ruby perspective.
 
 require 'zyre'
 
