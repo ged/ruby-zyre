@@ -150,7 +150,7 @@ rzyre_make_zmsg_from( VALUE messages )
  *
  */
 static VALUE
-rzyre_s_zyre_version()
+rzyre_s_zyre_version( VALUE _mod )
 {
 	static uint64_t version;
 
