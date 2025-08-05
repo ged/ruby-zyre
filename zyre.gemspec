@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
-# stub: zyre 0.7.0.pre.20250805114627 ruby lib
+# stub: zyre 0.8.0.pre.20250805115944 ruby lib
 # stub: ext/zyre_ext/extconf.rb
 
 Gem::Specification.new do |s|
   s.name = "zyre".freeze
-  s.version = "0.7.0.pre.20250805114627".freeze
+  s.version = "0.8.0.pre.20250805115944".freeze
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.metadata = { "changelog_uri" => "https://deveiate.org/code/zyre/History_md.html", "documentation_uri" => "https://deveiate.org/code/zyre", "homepage_uri" => "https://gitlab.com/ravngroup/open-source/ruby-zyre", "source_uri" => "https://gitlab.com/ravngroup/open-source/ruby-zyre/-/tree/master" } if s.respond_to? :metadata=

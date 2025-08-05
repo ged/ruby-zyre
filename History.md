@@ -2,6 +2,17 @@
 
 ---
 
+## v0.7.0 [2025-08-05] Michael Granger <ged@faeriemud.org>
+
+Improvements:
+
+- Add ZAUTH
+
+Fixes:
+
+- Move the interface method setting to the Zyre toplevel since it's actually global
+
+
 ## v0.6.0 [2023-08-08] Michael Granger <ged@faeriemud.org>
 
 Improvements:
