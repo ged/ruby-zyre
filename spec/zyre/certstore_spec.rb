@@ -2,6 +2,7 @@
 
 require_relative '../spec_helper'
 
+require 'pathname'
 require 'tmpdir'
 require 'zyre/certstore'
 
@@ -52,7 +53,6 @@ RSpec.describe( Zyre::Certstore ) do
 
 		expect( res ).to be_a( Zyre::Cert )
 		expect( res.public_txt ).to eq( cert.public_txt )
-		res.print
 		expect( res[:name] ).to eq( 'test23' )
 	end
 

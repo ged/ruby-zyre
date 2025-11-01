@@ -15,6 +15,14 @@ VALUE rzyre_cZyreCert;
 static void rzyre_cert_free( void *ptr );
 
 
+static const byte EMPTY_KEY[32] = {
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+static const char *Z85_EMPTY_KEY = "0000000000000000000000000000000000000000";
+
+
 static const rb_data_type_t rzyre_cert_t = {
 	.wrap_struct_name = "Zyre::Cert",
 	.function = {
@@ -84,6 +92,8 @@ rzyre_wrap_cert( zcert_t *ptr )
 }
 
 
+
+
 /*
  * call-seq:
  *   Zyre::Cert.from( public_key, secret_key )    -> cert
@@ -112,6 +122,42 @@ rzyre_cert_s_from( VALUE class, VALUE public_key, VALUE secret_key )
 
 	if ( !ptr ) {
 		rb_raise( rb_eArgError, "invalid key pair" );
+	}
+
+	RTYPEDDATA_DATA( self ) = ptr;
+
+	return self;
+}
+
+
+
+/*
+ * call-seq:
+ *   Zyre::Cert.from_public( public_key )    -> cert
+ *
+ * Create a public certificate from a +public_key+ string.
+ *
+ */
+static VALUE
+rzyre_cert_s_from_public( VALUE class, VALUE public_key )
+{
+	VALUE self = rzyre_cert_alloc( class );
+	zcert_t *ptr = NULL;
+	const char *pub_str = StringValuePtr( public_key );
+
+	if ( RSTRING_LEN(public_key) == 32 ) {
+		ptr = zcert_new_from( (const byte *)pub_str, EMPTY_KEY );
+	} else if ( RSTRING_LEN(public_key) == 40 ) {
+#ifdef CZMQ_BUILD_DRAFT_API
+		ptr = zcert_new_from_txt( pub_str, Z85_EMPTY_KEY );
+#else
+		rb_raise( rb_eNotImpError,
+			"can't create a key from encoded keys: Czmq was not built with Draft APIs!" );
+#endif
+	}
+
+	if ( !ptr ) {
+		rb_raise( rb_eArgError, "invalid key" );
 	}
 
 	RTYPEDDATA_DATA( self ) = ptr;
@@ -494,6 +540,7 @@ rzyre_init_cert( void ) {
 	rb_define_alloc_func( rzyre_cZyreCert, rzyre_cert_alloc );
 
 	rb_define_singleton_method( rzyre_cZyreCert, "from", rzyre_cert_s_from, 2 );
+	rb_define_singleton_method( rzyre_cZyreCert, "from_public", rzyre_cert_s_from_public, 1 );
 	rb_define_singleton_method( rzyre_cZyreCert, "load", rzyre_cert_s_load, 1 );
 
 	rb_define_protected_method( rzyre_cZyreCert, "initialize", rzyre_cert_initialize, 0 );

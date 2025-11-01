@@ -13,6 +13,7 @@ class Zyre::Cert
 
 	# The placeholder key that is set as the secret key for a public certificate.
 	EMPTY_KEY = "\x00" * 32
+	Z85_EMPTY_KEY = Zyre.z85_encode( EMPTY_KEY )
 
 
 	# Use the Zyre module's logger

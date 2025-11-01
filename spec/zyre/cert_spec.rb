@@ -27,6 +27,17 @@ RSpec.describe( Zyre::Cert ) do
 	end
 
 
+	it "can be created from public key" do
+		cert = described_class.new
+
+		result = described_class.from_public( cert.public_key )
+
+		expect( result ).to be_a( described_class )
+		expect( result.public_txt ).to eq( cert.public_txt )
+		expect( result.secret_txt ).to eq( Zyre::Cert::Z85_EMPTY_KEY )
+	end
+
+
 	it "can be saved to and loaded from a file" do
 		cert = described_class.new
 		cert.save( cert_file.path )
