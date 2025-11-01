@@ -538,8 +538,6 @@ RSpec.describe( Zyre::Node ) do
 		end
 
 
-		it "supports CURVE authentication"
-
 		it "supports advertised_endpoint="
 		it "supports gossip_connect_curve"
 		it "supports gossip_unpublish"

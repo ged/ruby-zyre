@@ -87,6 +87,7 @@ extern VALUE rzyre_cZyreNode;
 extern VALUE rzyre_cZyreEvent;
 extern VALUE rzyre_cZyrePoller;
 extern VALUE rzyre_cZyreCert;
+extern VALUE rzyre_cZyreCertstore;
 
 extern zactor_t *auth_actor;
 
@@ -99,6 +100,7 @@ extern zactor_t *auth_actor;
 #define IsZyreEvent( obj ) rb_obj_is_kind_of( (obj), rzyre_cZyreEvent )
 #define IsZyrePoller( obj ) rb_obj_is_kind_of( (obj), rzyre_cZyrePoller )
 #define IsZyreCert( obj ) rb_obj_is_kind_of( (obj), rzyre_cZyreCert )
+#define IsZyreCertstore( obj ) rb_obj_is_kind_of( (obj), rzyre_cZyreCertstore )
 
 /* --------------------------------------------------------------
  * Utility functions
@@ -115,9 +117,11 @@ extern void rzyre_init_node _(( void ));
 extern void rzyre_init_event _(( void ));
 extern void rzyre_init_poller _(( void ));
 extern void rzyre_init_cert _(( void ));
+extern void rzyre_init_certstore _(( void ));
 
 extern zyre_t * rzyre_get_node _(( VALUE ));
 extern zcert_t * rzyre_get_cert _(( VALUE ));
+extern VALUE rzyre_wrap_cert _(( zcert_t * ));
 
 #endif /* end of include guard: ZYRE_EXT_H_90322ABD */
 

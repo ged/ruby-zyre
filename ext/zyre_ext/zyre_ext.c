@@ -514,5 +514,6 @@ Init_zyre_ext()
 	rzyre_init_event();
 	rzyre_init_poller();
 	rzyre_init_cert();
+	rzyre_init_certstore();
 }
 

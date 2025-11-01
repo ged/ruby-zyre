@@ -68,6 +68,22 @@ rzyre_get_cert( VALUE self )
 }
 
 
+
+/*
+ * Wrap a zcert_t in a Zyre::Cert object.
+ */
+VALUE
+rzyre_wrap_cert( zcert_t *ptr )
+{
+	VALUE wrapper = rzyre_cert_alloc( rzyre_cZyreCert );
+	zcert_t *copy = zcert_dup( ptr );
+
+	RTYPEDDATA_DATA( wrapper ) = copy;
+
+	return wrapper;
+}
+
+
 /*
  * call-seq:
  *   Zyre::Cert.from( public_key, secret_key )    -> cert
@@ -262,7 +278,7 @@ rzyre_cert_meta( VALUE self, VALUE name )
 	const char *name_str = StringValuePtr( name );
 	const char *value = zcert_meta( ptr, name_str );
 
-	if ( value ) rval = rb_str_new_cstr( value );
+	if ( value ) rval = rb_utf8_str_new_cstr( value );
 
 	return rval;
 }
@@ -357,7 +373,8 @@ static VALUE
 rzyre_cert_save_public( VALUE self, VALUE filename )
 {
 	zcert_t *ptr = rzyre_get_cert( self );
-	const char *filename_str = StringValueCStr( filename );
+	VALUE filename_s = rb_funcall( filename, rb_intern("to_s"), 0 );
+	const char *filename_str = StringValueCStr( filename_s );
 	int result;
 
 	result = zcert_save_public( ptr, filename_str );

@@ -1,30 +1,30 @@
 # Authenticated \Zyre
 
-Note that authentication requires API that is still in Draft, so it requires
-that your libzyre be built with --enable-drafts. Also, since draft APIs are
-subject to change, this documentation may be out of date. A good place to check
-for the latest info is the built-in test suites in the Zyre source itself.
+Note that authentication requires a Draft API, so it requires that your libzyre
+be built with `--enable-drafts`. Also, since draft APIs are subject to change,
+this documentation may be out of date. A good place to check for the latest
+info is the built-in test suites in the Zyre source itself.
 
-Authentication isn't done yet, but when it is it'll look something like:
+Authentication in Zyre is done using the mechanism built into ZeroMQ. To enable it, you start the authenticator actor ([zauth][]) and then configure the authentication you wish to use.
 
-    cert = Zyre::Cert.new
-    cert.save( "/usr/local/var/certs/server" )
+## Curve Authentication
 
-    Zyre.allow( "127.0.0.1", "10.0.12.2" )
-    Zyre.start_authenticator( :CURVE, "/usr/local/var/certs" )
+To enable secure connections, you tell Zyre to enable Curve. You can either call this method with no argument, in which case any node that presents a valid cert will be allowed to connect, or you pass in the path to a [zcertstore][] that contains all the certificates of nodes which will be allowed to connect.
 
-    node = Zyre::Node.new
-    node.zap_domain = 'application_name'
-    node.zcert = cert
-    node.start
+To document:
 
-    # later...
-
-    node.stop
-    Zyre.stop_authenticator
+- Creating a certstore
+- Enabling the authenticator
+- Enabling curve authentication
 
 
 ## References
 
 - ZAP (ZeroMQ Authentication Protocol) - https://rfc.zeromq.org/spec/27/
 - Using ZeroMQ Security (Part 2) - https://jaxenter.com/using-zeromq-security-part-2-119353.html
+
+
+[zauth]: http://api.zeromq.org/czmq3-0:zauth
+[zcertstore]: http://api.zeromq.org/czmq3-0:zcertstore
+
+
