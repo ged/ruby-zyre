@@ -74,7 +74,7 @@ rzyre_get_certstore( VALUE self )
  *    Zyre::Certstore.new                -> certstore
  *    Zyre::Certstore.new( directory )   -> certstore
  *
- * Create a new certificate store. If not +directory+ is given, creates an 
+ * Create a new certificate store. If not +directory+ is given, creates an
  * in-memory store.
  *
  */
@@ -134,7 +134,7 @@ rzyre_certstore_lookup( VALUE self, VALUE public_key )
  * call-seq:
  *    certstore.insert( certificate )
  *
- * Insert +certificate+ (a Zyre::Cert) into certificate store in memory. Note 
+ * Insert +certificate+ (a Zyre::Cert) into certificate store in memory. Note
  * that this does not save the certificate to disk. To do that, use Zyre::Cert#save
  * directly on the certificate.
  *

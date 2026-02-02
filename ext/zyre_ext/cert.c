@@ -148,11 +148,11 @@ rzyre_cert_s_from_public( VALUE class, VALUE public_key )
 	if ( RSTRING_LEN(public_key) == 32 ) {
 		ptr = zcert_new_from( (const byte *)pub_str, EMPTY_KEY );
 	} else if ( RSTRING_LEN(public_key) == 40 ) {
-#ifdef CZMQ_BUILD_DRAFT_API
+#ifdef HAVE_ZCERT_NEW_FROM_TXT
 		ptr = zcert_new_from_txt( pub_str, Z85_EMPTY_KEY );
 #else
 		rb_raise( rb_eNotImpError,
-			"can't create a key from encoded keys: Czmq was not built with Draft APIs!" );
+			"can't create a key from encoded keys: Czmq is too old!" );
 #endif
 	}
 

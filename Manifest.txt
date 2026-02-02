@@ -3,6 +3,7 @@ History.md
 LICENSE.txt
 README.md
 ext/zyre_ext/cert.c
+ext/zyre_ext/certstore.c
 ext/zyre_ext/event.c
 ext/zyre_ext/node.c
 ext/zyre_ext/poller.c
@@ -11,6 +12,7 @@ ext/zyre_ext/zyre_ext.h
 lib/observability/instrumentation/zyre.rb
 lib/zyre.rb
 lib/zyre/cert.rb
+lib/zyre/certstore.rb
 lib/zyre/event.rb
 lib/zyre/event/enter.rb
 lib/zyre/event/evasive.rb
@@ -28,6 +30,7 @@ lib/zyre/testing.rb
 spec/observability/instrumentation/zyre_spec.rb
 spec/spec_helper.rb
 spec/zyre/cert_spec.rb
+spec/zyre/certstore_spec.rb
 spec/zyre/event_spec.rb
 spec/zyre/node_spec.rb
 spec/zyre/poller_spec.rb

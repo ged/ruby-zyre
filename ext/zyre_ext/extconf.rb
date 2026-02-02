@@ -31,6 +31,7 @@ have_func( 'zmq_z85_encode', 'zmq.h' )
 have_func( 'zmq_z85_decode', 'zmq.h' )
 
 have_func( 'zcert_unset_meta', 'czmq.h' )
+have_func( 'zcert_new_from_txt', 'czmq.h' )
 
 create_header()
 create_makefile( 'zyre_ext' )
