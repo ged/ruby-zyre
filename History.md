@@ -1,6 +1,13 @@
 # Release History for zyre
 
 ---
+## v0.8.0 [2026-02-02] Michael Granger <ged@faeriemud.org>
+
+Improvements:
+
+- Add Zyre::Certstore for managing zcertstores
+- Add convenience method for making public certs
+
 
 ## v0.7.0 [2025-08-05] Michael Granger <ged@faeriemud.org>
 
